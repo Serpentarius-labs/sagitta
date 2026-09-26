@@ -1,0 +1,70 @@
+# Demo 开发依赖：一键启动 PG / Redis / MinIO / Qdrant。
+# 端口刻意避开本机数据库默认的 5432 / 6379 / 6333。
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#
+name: sagitta-dev
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: sagitta-test-pg
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sagitta
+    ports: ["15432:5432"]
+    volumes: [pg-data:/var/lib/postgresql/data]
+    command: ["postgres", "-c", "shared_preload_libraries=vector"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sagitta"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: sagitta-test-redis
+    ports: ["16379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports: ["9000:9000", "9001:9001"]
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin123456
+    command: server /data --console-address ":9001"
+    volumes: [minio-data:/data]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+
+  # 首次启动时准备 demo bucket（bucket 已存在则跳过）。
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio: { condition: service_healthy }
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 admin admin123456 &&
+      (mc mb local/demo || true) &&
+      echo 'MinIO ready'"
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: sagitta-test-qdrant
+    ports: ["16333:6333", "16334:6334"]
+    volumes: [qdrant-data:/qdrant/storage]
+
+volumes:
+  pg-data:
+  minio-data:
+  qdrant-data:

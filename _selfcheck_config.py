@@ -1,0 +1,31 @@
+from sagitta.Config.loader import ConfigLoader
+from sagitta.Config.setting import build_settings, set_settings
+
+raw = ConfigLoader.instance('conf/config.yaml').reload()
+s = build_settings(raw)
+set_settings(s)
+print('repr:', s)
+print()
+print('-- env override (README promise) --')
+print('SG_CHECK_DO_LEAK=0      ->', s.check_do_leak, '(expect False)')
+print('SG_DB_DEFAULT_HOST      ->', s.get_db('default').host, '(expect 10.0.0.9)')
+print('SG_LOG_BACKEND=loguru   ->', s.log.backend, '(expect loguru)')
+print('SG_SERVER_PORT=9100     ->', s.server.port, type(s.server.port).__name__, '(expect 9100 int)')
+print()
+print('-- legacy yaml compat --')
+print('database.url folded ->', s.db_url[:60])
+print('db type inferred    ->', s.db_type)
+print('url_sync (alembic)  ->', s.get_db('default').url_sync[:60])
+print()
+print('-- multi-datasource & s3 alias --')
+print('db sources:', list(s.db))
+print('redis     :', list(s.redis))
+print('hasattr(s3, default_strategy):', hasattr(s.s3, 'default_strategy'))
+print('file.default_strategy        :', s.file.default_strategy)
+print()
+print('-- strict file backend (README rule 3) --')
+try:
+    s.require_file_backend()
+    print('require_file_backend -> configured OK')
+except Exception as e:
+    print('require_file_backend ->', type(e).__name__, str(e)[:100])

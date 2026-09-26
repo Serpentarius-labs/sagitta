@@ -1,0 +1,28 @@
+# 构建上下文排除项：瘦身 + 防密钥进镜像
+.venv/
+venv/
+.git/
+.idea/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# 真实环境变量文件绝不进入构建上下文（样例文件也无需进镜像）
+.env
+.env.*
+
+# 与运行无关的目录
+docs/
+tests/
+nginx/
+logs/
+.uploads/
+
+# 开发辅助文件
+docker-compose*.yml
+*.md
+.gitignore
+.dockerignore

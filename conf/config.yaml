@@ -1,0 +1,60 @@
+# Demo 应用配置 —— 演示「宿主项目该怎么写配置文件」。
+# 优先级：代码默认值 < 本文件 < SG_ 开头的环境变量。
+# 所有端口均避开本机数据库默认的 5432/6379/6333。
+
+app:
+  title: Sagitta Demo API
+  version: "0.1.0"
+  debug: true
+  # env: dev                    # 也可用 SG_APP_ENV 覆盖
+  # check_do_leak: true         # DO 泄漏运行时守卫，保持开启
+  # wrap_response: true         # 响应自动包装，保持开启
+
+server:
+  host: 0.0.0.0
+  port: 8000
+  workers: 1
+  # CORS 白名单（逗号分隔的字符串或列表均可）
+  cors_origins:
+    - http://localhost:5173
+    - http://127.0.0.1:5173
+
+# 多数据源的规范写法：db.<name>.* （旧版扁平 database: 节仍兼容）。
+db:
+  default:
+    type: postgresql
+    host: 127.0.0.1
+    port: 15432
+    user: postgres
+    password: postgres
+    database: sagitta
+    pool_size: 5
+    echo: false
+
+redis:
+  default: { url: redis://127.0.0.1:16379/0, max_connections: 10 }
+  auth:    { url: redis://127.0.0.1:16379/1, max_connections: 5 }
+
+# Qdrant 默认关闭；需要向量检索时 enabled: true
+qdrant:
+  enabled: false
+  host: 127.0.0.1
+  port: 16333
+
+security:
+  jwt_ttl_access: 900
+  jwt_ttl_refresh: 604800
+  cookie_secure: false      # prod 必须 true
+  cookie_samesite: strict
+  login_max_attempts: 5
+  login_lock_seconds: 300
+
+# 文件存储（旧版 s3: 节仍兼容，会被自动映射到 file）。
+file:
+  default_strategy: auto    # auto / oss / nginx / python
+  endpoint: "http://127.0.0.1:9000"
+  access_key: "admin"
+  secret_key: "admin123456"
+  bucket: "demo"
+  region: "us-east-1"
+  public_domain: ""

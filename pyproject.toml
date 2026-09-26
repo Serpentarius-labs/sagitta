@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sagitta"
+version = "0.1.0"
+description = "FastAPI 二次开发框架：分层约束、统一响应、多数据源、认证与文件存储开箱即用"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "sagitta" }]
+
+# 核心依赖：只包含「import sagitta」时不可避免的部分。
+# 数据库驱动、迁移、向量库等按需安装 extras，避免下游被强装一堆用不到的包。
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "sqlalchemy>=2.0.30",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "redis>=5.0",
+    "python-dotenv>=1.0",
+    "argon2-cffi>=23.1",
+    "PyJWT>=2.8",
+    "cryptography>=42.0",
+    "aiofiles>=23.2",
+]
+
+[project.optional-dependencies]
+# 数据库驱动
+pg = ["asyncpg>=0.29", "psycopg[binary]>=3.1"]
+mysql = ["asyncmy>=0.2.9", "PyMySQL>=1.1"]
+sqlite = ["aiosqlite>=0.20"]
+# 文件存储：S3Backend 用同步 boto3 签发预签名，流式下载用 aiobotocore
+s3 = ["boto3>=1.34", "aiobotocore>=2.13"]
+# 数据库迁移
+alembic = ["alembic>=1.13"]
+# 向量检索
+qdrant = ["qdrant-client>=1.9"]
+# 结构化日志后端
+loguru = ["loguru>=0.7"]
+# 测试
+test = ["pytest>=8.0", "pytest-asyncio>=0.23"]
+
+[tool.setuptools.packages.find]
+# 只打包框架本身；app/ 是基于框架的 demo，不属于分发包。
+include = ["sagitta*"]
+exclude = ["app*", "tests*", "_selfcheck*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = ["ignore::DeprecationWarning"]

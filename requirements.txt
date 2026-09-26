@@ -1,0 +1,36 @@
+# Demo 开发环境完整依赖（框架本身的依赖边界见 pyproject.toml）。
+# 安装：pip install -r requirements.txt
+
+# ---- 框架核心 ----
+fastapi
+uvicorn[standard]
+sqlalchemy[asyncio]
+pydantic
+pyyaml
+python-dotenv
+redis
+aiofiles
+
+# ---- 数据库（PG：异步 asyncpg，Alembic 同步 psycopg）----
+asyncpg
+psycopg[binary]
+alembic
+
+# ---- 安全 ----
+argon2-cffi
+PyJWT
+cryptography
+
+# ---- 文件存储（S3Backend 同步 boto3 签发预签名；流式下载 aiobotocore）----
+boto3
+aiobotocore
+
+# ---- 向量库（默认关闭，启用 qdrant 时需要）----
+qdrant-client
+
+# ---- 可选日志后端（SG_LOG_BACKEND=loguru）----
+loguru
+
+# ---- 测试 ----
+pytest
+pytest-asyncio

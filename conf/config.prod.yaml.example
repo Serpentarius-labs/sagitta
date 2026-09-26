@@ -1,0 +1,38 @@
+# ==========================================================================
+# Profile 覆盖层样例 —— 演示「SG_PROFILE=prod」时该放什么。
+# 复制为 conf/config.prod.yaml 后随仓库分发（.example 后缀不会被加载）：
+#     Copy-Item conf\config.prod.yaml.example conf\config.prod.yaml
+#
+# 边界铁律：
+#   * 本文件**入库**，只允许写非敏感的结构性差异（日志格式、开关、域名）；
+#   * 密码 / 主密钥 / access_key 等敏感项**一律走环境变量或 K8s Secret**，
+#     即使是私有仓库也不要写——提交历史永远删不干净。
+# ==========================================================================
+
+app:
+  debug: false
+
+server:
+  # 生产域名明确列出；带 Cookie 时不能用 "*"（详见 README 配置说明）
+  cors_origins:
+    - https://your-frontend.example.com
+
+log:
+  level: INFO
+  format: json          # 生产环境结构化日志，便于采集
+
+security:
+  cookie_secure: true   # ⚠️ 生产必须 true，否则 Cookie 走 HTTP 明文
+  cookie_samesite: lax
+
+file:
+  default_strategy: oss
+  endpoint: ""          # 由 SG_FILE_ENDPOINT 注入（集群内地址）
+  public_domain: "https://files.example.com"
+  # access_key / secret_key 不写：由 SG_FILE_ACCESS_KEY / SG_FILE_SECRET_KEY 注入
+
+# 敏感项注入清单（在部署环境或 K8s Secret 中提供，勿取消注释后填值入库）：
+#   SG_MASTER_KEY
+#   SG_DB_DEFAULT_URL（或 SG_DB_DEFAULT_PASSWORD）
+#   SG_REDIS_DEFAULT_URL
+#   SG_FILE_ACCESS_KEY / SG_FILE_SECRET_KEY

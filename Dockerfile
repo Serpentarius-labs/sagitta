@@ -18,7 +18,7 @@ RUN useradd -r -u 10001 appuser
 
 # 只拷贝运行所需内容；.env / .venv 等由 .dockerignore 排除
 COPY --chown=appuser sagitta/ ./sagitta/
-COPY --chown=appuser app/ ./app/
+COPY --chown=appuser demo/ ./app/
 COPY --chown=appuser conf/config.yaml ./conf/config.yaml
 COPY --chown=appuser main.py ./main.py
 

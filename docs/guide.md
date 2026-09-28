@@ -142,7 +142,7 @@ class ArticleCodes(BizCodes):
 
 ```python
 from sagitta.Database.repository import BaseRepository
-from app.do.article_do import ArticleDO
+from demo.do.article_do import ArticleDO
 
 
 class ArticleRepository(BaseRepository[ArticleDO]):
@@ -161,11 +161,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sagitta.Core.errors import BizError, NotFoundError
 from sagitta.Core.inject import ServiceBase
 
-from app.biz_code import ArticleCodes
-from app.do.article_do import ArticleDO
-from app.do.article_repo import ArticleRepository
-from app.dto.article_dto import ArticleCreateDTO
-from app.vo.article_vo import ArticleVO
+from demo.biz_code import ArticleCodes
+from demo.do.article_do import ArticleDO
+from demo.do.article_repo import ArticleRepository
+from demo.dto.article_dto import ArticleCreateDTO
+from demo.vo.article_vo import ArticleVO
 
 
 class ArticleService(ServiceBase):
@@ -173,14 +173,14 @@ class ArticleService(ServiceBase):
 
     async def create(self, db: AsyncSession, dto: ArticleCreateDTO) -> ArticleVO:
         row = ArticleDO(title=dto.title, content=dto.content)
-        await ArticleRepository(db).add(row)   # flush，不 commit
+        await ArticleRepository(db).add(row)  # flush，不 commit
         await db.refresh(row)
         return ArticleVO.model_validate(row)
 
     async def publish(self, db: AsyncSession, article_id: UUID) -> ArticleVO:
         row = await ArticleRepository(db).get(article_id)
         if row is None:
-            raise NotFoundError()                       # 协议错误：404 / NOT_FOUND
+            raise NotFoundError()  # 协议错误：404 / NOT_FOUND
         if row.status != "draft":
             raise BizError(ArticleCodes.ARTICLE_NOT_DRAFT)  # 业务拒绝：409
         row.status = "published"
@@ -204,10 +204,10 @@ from sagitta.Core.biz_code import raises
 from sagitta.Database.session import session_dep
 from sagitta.Flow.controller import Controller
 
-from app.biz_code import ArticleCodes
-from app.dto.article_dto import ArticleCreateDTO
-from app.services.article_service import ArticleService
-from app.vo.article_vo import ArticleVO
+from demo.biz_code import ArticleCodes
+from demo.dto.article_dto import ArticleCreateDTO
+from demo.services.article_service import ArticleService
+from demo.vo.article_vo import ArticleVO
 
 _db = Depends(session_dep())
 
@@ -216,14 +216,14 @@ class ArticleController(Controller):
     prefix = "/article"
     tags = ["文章"]
 
-    svc: ArticleService                 # 自动注入
+    svc: ArticleService  # 自动注入
 
     @Controller.post("/", status_code=201, summary="创建文章")
     async def create(self, dto: ArticleCreateDTO, db: AsyncSession = _db) -> ArticleVO:
         return await self.svc.create(db, dto)
 
     @Controller.post("/{article_id}/publish", summary="发布文章")
-    @raises(ArticleCodes.ARTICLE_NOT_DRAFT)   # → OpenAPI 409 码表
+    @raises(ArticleCodes.ARTICLE_NOT_DRAFT)  # → OpenAPI 409 码表
     async def publish(self, article_id: uuid.UUID, db: AsyncSession = _db) -> ArticleVO:
         return await self.svc.publish(db, article_id)
 ```
@@ -282,7 +282,7 @@ HTTP 请求
 ```python
 from fastapi import FastAPI
 
-from sagitta.App.lifespan import make_lifespan
+from sagitta.app.lifespan import make_lifespan
 from sagitta.Config.setting import get_settings
 
 # 若用到安全功能，先于一切 import 初始化主密钥：
@@ -293,7 +293,7 @@ app = FastAPI(lifespan=make_lifespan(settings_provider=get_settings))
 
 @app.get("/ping")
 async def ping():
-    return {"pong": True}      # 不套壳、不查 DO，完全原生
+    return {"pong": True}  # 不套壳、不查 DO，完全原生
 ```
 
 这样 DB 连接池、Redis、日志、慢 SQL 监听都由框架生命周期托管，但路由完全是你自己的。需要健康探针可再调 `register_health(app)`。
@@ -472,9 +472,9 @@ myapp/
 ```python
 # main.py
 from fastapi import FastAPI
-from sagitta.App.lifespan import make_lifespan
+from sagitta.app.lifespan import make_lifespan
 from sagitta.Config.setting import get_settings
-from sagitta.App.bootstrap import register_health
+from sagitta.app.bootstrap import register_health
 
 app = FastAPI(lifespan=make_lifespan(settings_provider=get_settings))
 register_health(app)

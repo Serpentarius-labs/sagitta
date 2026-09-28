@@ -43,6 +43,8 @@ _HTTP_CODE_NAMES: Dict[int, str] = {
     503: "SERVICE_UNAVAILABLE", 504: "GATEWAY_TIMEOUT",
 }
 
+_cached_app = None # 单例
+
 
 def _http_code_name(status: int) -> str:
     return _HTTP_CODE_NAMES.get(status) or (
@@ -239,6 +241,11 @@ def bootstrap(
                            自己控制）。
     expose_internal_errors : 500 是否暴露异常细节。默认按 env != prod 判定。
     """
+
+    global _cached_app
+    if _cached_app is not None:
+        return _cached_app
+
     cfg = settings or get_settings()
 
     app_title = title or cfg.app.title
@@ -299,6 +306,8 @@ def bootstrap(
         mounted = mount_all(app)
         ok, missing = report()
         logger.info("[boot] 控制器挂载完成: %d 个（登记 %d，遗漏 %d）", mounted, ok, missing)
+
+    _cached_app = app
 
     return app
 

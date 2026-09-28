@@ -33,12 +33,12 @@ def check(name, cond, detail=""):
 
 async def _prepare_schema():
     """建表（模拟 alembic upgrade head 的效果）。"""
-    import app.do.user_do  # noqa: 触发模型登记进 Base.metadata
+    import demo.do.user_do  # noqa: 触发模型登记进 Base.metadata
     url = get_settings().get_db("default").url
     eng = create_async_engine(url, echo=False)
     async with eng.begin() as conn:
-        await conn.run_sync(lambda sc: Base.metadata.drop_all(sc, tables=[app.do.user_do.UserDO.__table__]))
-        await conn.run_sync(lambda sc: Base.metadata.create_all(sc, tables=[app.do.user_do.UserDO.__table__]))
+        await conn.run_sync(lambda sc: Base.metadata.drop_all(sc, tables=[demo.do.user_do.UserDO.__table__]))
+        await conn.run_sync(lambda sc: Base.metadata.create_all(sc, tables=[demo.do.user_do.UserDO.__table__]))
     await eng.dispose()
 
 
@@ -178,11 +178,11 @@ if FAIL:
 
 # 清理：删表
 async def _cleanup():
-    import app.do.user_do
+    import demo.do.user_do
     url = get_settings().get_db("default").url
     eng = create_async_engine(url, echo=False)
     async with eng.begin() as conn:
-        await conn.run_sync(lambda sc: Base.metadata.drop_all(sc, tables=[app.do.user_do.UserDO.__table__]))
+        await conn.run_sync(lambda sc: Base.metadata.drop_all(sc, tables=[demo.do.user_do.UserDO.__table__]))
     await eng.dispose()
 
 

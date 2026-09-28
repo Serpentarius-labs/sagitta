@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()  # 先加载 .env，Vault 与配置都依赖它
 
-from sagitta.App.bootstrap import bootstrap
+from sagitta.app.bootstrap import bootstrap
 from sagitta.Config.setting import get_settings
 
 # ⚠️ 安全：Vault.init() 必须在任何签发/校验令牌的代码之前。
@@ -28,18 +28,18 @@ FILE_ENABLED = True
 
 if FILE_ENABLED:
     # 时序关键：必须在 bootstrap() **之前**装配——控制器挂载时就要解析
-    # FileService，详见 app/storage_setup.py 模块说明。
-    from app.storage_setup import setup_file_storage
+    # FileService，详见 demo/storage_setup.py 模块说明。
+    from demo.storage_setup import setup_file_storage
     setup_file_storage(settings)
 
 # 控制器只有被 import 才会登记。框架不猜宿主的包名（本框架会以 submodule
 # 形式被下游引入），所以在这里显式列出需要挂载的控制器模块。
 CONTROLLER_MODULES = [
-    "app.controllers.user_controller",
-    "app.controllers.auth_controller",
+    "demo.controllers.user_controller",
+    "demo.controllers.auth_controller",
 ]
 if FILE_ENABLED:
-    CONTROLLER_MODULES.append("app.controllers.file_controller")
+    CONTROLLER_MODULES.append("demo.controllers.file_controller")
 
 # 文件下载共享的 aiobotocore client 要在 shutdown 时显式释放
 # （aiohttp 连接池靠 GC 不可靠，热重载场景会泄漏）。
@@ -72,10 +72,33 @@ app = bootstrap(
     controller_packages=CONTROLLER_MODULES,
 )
 
+
+def print_all_routes(app):
+    """递归打印 FastAPI 所有路由（包括 include_router 挂载的子路由）"""
+    from fastapi.routing import APIRoute, Mount
+
+    def _walk(routes, prefix=""):
+        for route in routes:
+            if isinstance(route, APIRoute):
+                methods = ",".join(sorted(route.methods))
+                print(f"  {methods:>10} {prefix}{route.path}")
+            elif isinstance(route, Mount):
+                sub_prefix = prefix + route.path
+                print(f"  {'MOUNT':>10} {sub_prefix}/")
+                if hasattr(route, "routes"):
+                    _walk(route.routes, sub_prefix)
+
+    print("\n=== 🛣️ 完整路由表（含子路由） ===")
+    _walk(app.routes)
+    print("===============================\n")
+
+
+# 在 bootstrap 之后调用
+print_all_routes(app)
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host=settings.server.host,
         port=settings.server.port,
-        reload=settings.app.debug,
+        reload=False,
     )

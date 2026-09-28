@@ -13,11 +13,10 @@ from typing import Any, Callable, Dict, List, Optional, Sequence
 from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel
 
-from ..Core.biz_code import collect_raises, group_by_status
 from ..Core.inject import autowire
 from .registry import register, report, reset_for_test  # noqa: F401  (re-export)
 from .registry import mount_all as _registry_mount_all
-from .response import RespError, resp_model_for, wrap_endpoint
+from .response import resp_model_for, wrap_endpoint
 
 logger = logging.getLogger("sagitta")
 
@@ -177,13 +176,9 @@ class Controller:
                 sig = inspect.signature(fn)
                 response_model = resp_model_for(sig.return_annotation)
 
-            # 路由声明的 status_code 必须传进包装器：返回值会被包成 SgResponse，
-            # FastAPI 对 Response 返回值不再应用路由级 status_code（见 response.py）
-            route_status_code = int(meta.get("status_code", 200) or 200)
             wrapped = wrap_endpoint(
                 bound, route_path=f"{cls.prefix}{route_path}",
                 check_do_leak=check_do_leak, wrap=wrap,
-                status_code=route_status_code,
             )
 
             add_kw: Dict[str, Any] = {
@@ -198,34 +193,14 @@ class Controller:
                     add_kw[key] = meta[key]
             if response_model is not None:
                 add_kw["response_model"] = response_model
-            # 三层 responses 合并（后者信息不丢）：
-            #   1) 协议错误默认语义（401/403/429/500，body 为统一错误壳）
-            #   2) @raises 声明的业务码，按 HTTP 大类分组列成码表
-            #   3) 路由上显式手写的 responses，描述追加在码表之后
-            merged: Dict[int, Any] = {
-                401: {"model": RespError, "description": "未认证"},
-                403: {"model": RespError, "description": "无权限"},
-                429: {"model": RespError, "description": "限流"},
-                500: {"model": RespError, "description": "架构违规或内部错误"},
-            }
-
-            for status, codes in group_by_status(collect_raises(fn)):
-                table = "\n".join(f"- `{c.name}`: {c.message}" for c in codes)
-                merged[status] = {
-                    "model": RespError,
-                    "description": f"业务错误码：\n{table}",
-                }
-
-            for status, payload in (add_kw.get("responses") or {}).items():
-                cur = merged.get(status)
-                if cur and isinstance(payload, dict) and payload.get("description"):
-                    payload = dict(payload)
-                    payload["description"] = (
-                        cur.get("description", "") + "\n\n" + payload["description"]
-                    ).strip()
-                    payload.setdefault("model", cur.get("model"))
-                merged[status] = payload
-
+            # 未显式声明时补上框架的标准错误码语义
+            add_kw.setdefault("responses", {})
+            base_resp = {401: {"description": "未认证"},
+                         403: {"description": "无权限"},
+                         429: {"description": "限流"},
+                         500: {"description": "架构违规或内部错误"}}
+            merged = dict(base_resp)
+            merged.update(add_kw["responses"] or {})
             add_kw["responses"] = merged
 
             router.add_api_route(route_path, wrapped, **add_kw)

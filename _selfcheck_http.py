@@ -11,7 +11,7 @@ from fastapi import Depends
 from pydantic import BaseModel
 from sqlalchemy import Column, Integer, String
 
-from sagitta.App.bootstrap import bootstrap
+from sagitta.app.bootstrap import bootstrap
 from sagitta.Config.setting import build_settings, set_settings
 from sagitta.Core.inject import ServiceBase
 from sagitta.Database.base import Base

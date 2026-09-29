@@ -46,9 +46,9 @@ test = ["pytest>=8.0", "pytest-asyncio>=0.23"]
 [tool.setuptools.packages.find]
 # 只打包框架本身；app/ 是基于框架的 demo，不属于分发包。
 include = ["sagitta*"]
-exclude = ["app*", "tests*", "_selfcheck*"]
+exclude = ["app*", "demo*", "sagitta.tests*", "sagitta.fix_summary*", "_selfcheck*"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["sagitta/tests"]
 asyncio_mode = "auto"
 filterwarnings = ["ignore::DeprecationWarning"]

@@ -10,18 +10,19 @@ FastAPI 工程化骨架。外表克制，下手狠，专治业务代码里的蛇
 
 Sagitta 不只是一个库，也不只是一套脚手架模板。它是一套**跑起来就能写业务的 FastAPI 工程约定**，以可安装、可导入的 Python 包形式提供（见 pyproject.toml）。
 
-它替你定死四件事：
+它替你定死五件事：
 
 | 维度 | 它做的事 |
 |---|---|
 | **分层** | DO / DTO / VO 职责隔离，DO 流出 service 层直接运行时报错并给出字段路径 |
 | **响应** | endpoint 只返回裸数据，禁止手写 code/message，trace_id 自动注入 header 与日志 |
 | **存储链路** | 数据库（MySQL / PostgreSQL 双驱动）+ Redis + Qdrant 统一初始化、探活与优雅关闭 |
-| **可观测性** | 慢 SQL、连接池排队、HTTP 耗时三件套，零配置出日志 |
+| **可观测性** | 慢 SQL、连接池排队、HTTP 耗时三件套 + Prometheus 指标（/metrics），零配置出日志 |
+| **安全** | 全局限流、请求体大小限制、权限系统（资源级 + 数据级）、JWT 认证闭环 |
 
-剩下的路由写法、业务逻辑、鉴权策略，你自由发挥。
+剩下的路由写法、业务逻辑，你自由发挥。
 
-它不提供的：ORM 模型生成、权限模型、LLM 调用、沙箱执行。这些属于业务层，框架只留 hook。
+它不提供的：ORM 模型生成、LLM 调用、沙箱执行。这些属于业务层，框架只留 hook。
 
 ## 二、为什么需要它
 
@@ -48,16 +49,17 @@ Sagitta 的做法是**把这些坑变成运行时错误**，而不是靠 Code Re
 sagitta/                  # 框架层：你不该改这里
 ├── App/      bootstrap, lifespan
 ├── Config/   yaml + env 合并加载，SgSettings
-├── Core/     依赖注入容器、ServiceBase
+├── Core/     依赖注入容器、ServiceBase、指标采集、请求体限制
 ├── Database/ engine/session/慢SQL/连接池监控
 ├── Cache/    redis 池、分布式锁、装饰器缓存、Qdrant
 ├── Flow/     Controller 基类、SgResponse、Page 分页
-├── Security/ Vault 主密钥派生、JWT 签发校验、Argon2 哈希、登录守卫、认证中间件
+├── Security/ Vault 主密钥派生、JWT 签发校验、Argon2 哈希、登录守卫、认证中间件、限流、权限系统
 ├── File/     S3 兼容存储后端（预签名直传）+ 流式代理 + Nginx X-Accel + python 兜底
 ├── Log/      stdlib/loguru 双后端、TraceMiddleware
 └── Utils/    trace_id(uuid7)、工具函数
 
 app/                        # 业务层：你只该在这里写代码
+│             （本仓库示例代码在 demo/ 下，宿主项目用 app/）
 ├── do/       UserDO        # SQLAlchemy Model，禁止离开 app/
 ├── dto/      UserInsertDTO # 入参校验
 ├── vo/       UserVO        # 出参结构
@@ -100,6 +102,7 @@ conf/config.yaml 已随仓库提供，开箱即连 4.2 的容器；需要改连�
 - 文档：http://127.0.0.1:8000/docs
 - 健康检查：http://127.0.0.1:8000/health
 - 就绪探针：http://127.0.0.1:8000/ready（会真实探测 DB 与 Redis，K8s readiness 用）
+- Prometheus 指标：http://127.0.0.1:8000/metrics
 
 ### 4.4 验证一切正常
 
@@ -108,6 +111,7 @@ python _selfcheck_config.py   # 配置加载与 env 覆盖
 python _selfcheck_db.py       # 真实 PG：建表/分页/软删除/事务
 python _selfcheck_http.py     # HTTP 守卫：包装/DO 泄漏/校验/trace
 python _selfcheck_e2e.py      # 端到端：CRUD + 认证全流程
+pytest -v               # 75 个单元测试：游标编解码/配置校验/路由排序/权限系统/中间件
 ```
 
 四个脚本均应零 FAIL。
@@ -144,6 +148,10 @@ python _selfcheck_e2e.py      # 端到端：CRUD + 认证全流程
 | file.default_strategy | auto / oss / nginx / python | 生产 oss，本地 python |
 | log.format | text / json | 接 Loki/ELK 时用 json |
 | app.build_commit | CI 构建时注入的 commit，/health 可查 | SG_BUILD_COMMIT |
+| rate_limit.enabled | 全局限流总开关 | 生产保持 true |
+| rate_limit.ip_requests | 单 IP 窗口内最大请求数 | 60 |
+| server.max_body_bytes | 请求体大小上限（字节），0 不限制 | 10485760 (10MB) |
+| app.shutdown_timeout | 优雅关闭等待 in-flight 请求超时（秒） | 10.0 |
 
 多数据源、多 Redis 实例直接在 db / redis 下加 key 即可，代码侧用 session_dep("read")、RedisRegistry.get("cache") 取。
 
@@ -221,9 +229,9 @@ class UserPageQuery(PageQuery):
     keyword: str = ""
 
 async def page(self, db: AsyncSession, q: UserPageQuery) -> Page[UserVO]:
-    rows = (await db.execute(stmt.offset(q.offset).limit(q.limit))).scalars().all()
+    rows = (await db.execute(stmt.offset(q.offset).limit(q.page_size))).scalars().all()
     total = (await db.execute(select(func.count(UserDO.id)))).scalar() or 0
-    return Page.of(rows_vo, q.page, q.limit, total_fn=lambda: total)
+    return Page.of(rows_vo, q.page, q.page_size, total)
 ```
 
 page_size 上限硬编码 200，防止前端传 10^6 拖死数据库。
@@ -312,6 +320,68 @@ async def me(self, user: TokenPayload = Depends(current_user)): ...
 - 密码统一 Argon2id 哈希（`sagitta.Security.hash`），明文只在 DTO 短暂存在。
 - prod 必须 `security.cookie_secure=true`。
 
+### 7.7 限流与请求体限制
+
+全局限流基于 Redis ZSET 滑动窗口，三层维度同时检查：
+
+| 维度 | 默认配额 | 用途 |
+|---|---|---|
+| per-IP | 60 次/60 秒 | 防爬虫、防单 IP 滥用 |
+| per-user | 200 次/60 秒 | 防已登录用户滥用 |
+| global | 100 次/60 秒 | 全局热点保护 |
+
+Redis 不可用时降级为不限流（不阻塞业务）。限流触发返回 429 + 统一响应壳。
+
+请求体大小限制检查 Content-Length，超限返回 413。配置 `server.max_body_bytes`。
+
+### 7.8 Prometheus 指标
+
+GET /metrics 返回 Prometheus 文本格式，无需额外依赖：
+
+| 指标 | 类型 | 维度 |
+|---|---|---|
+| http_requests_total | Counter | method, route, status |
+| http_request_duration_ms | Histogram | method, route |
+| http_requests_in_progress | Gauge | method |
+| db_pool_checkedout | Gauge | engine |
+| db_pool_size | Gauge | engine |
+| redis_commands_total | Counter | command |
+| redis_command_duration_ms | Histogram | command |
+
+### 7.9 权限系统
+
+三层权限模型：
+
+| 层级 | 用法 | 说明 |
+|---|---|---|
+| 角色级 | `require_role("admin")` | 粗粒度，判断角色 |
+| 资源级 | `require_permission("user:write")` | 细粒度，按动作权限。支持通配符 `user:*`、`*` |
+| 数据级 | `require_data_scope("owner")` | 行级权限，自动附加 WHERE 条件 |
+
+权限通过 PermissionResolver 解析，默认从 JWT roles 映射。宿主可注册自定义 resolver 对接 Casbin / ACL 表：
+
+```
+from sagitta.Security.permissions import set_permission_resolver, PermissionResolver
+
+class CasbinResolver(PermissionResolver):
+    def resolve(self, user) -> set:
+        # 对接 Casbin，返回权限集合
+        ...
+
+set_permission_resolver(CasbinResolver())
+```
+
+数据级权限（DataScope）自动向查询附加 WHERE 条件，而非查出全表再过滤：
+
+```
+@Controller.get("/article/page")
+async def page(self, db = Depends(session_dep()),
+               scope: DataScope = Depends(require_data_scope("owner"))):
+    stmt = select(ArticleDO)
+    stmt = scope.apply_filter(stmt, ArticleDO)  # WHERE user_id = :current_user
+    ...
+```
+
 ## 八、数据库迁移
 
 框架不猜宿主的模型包，autogenerate 前必须告诉它 DO 在哪：
@@ -375,7 +445,8 @@ A：sa-GIT-ta（拉丁语「箭」）。中文叫「蛇鹫」，也叫秘书鸟�
 | 版本 | 状态 |
 |---|---|
 | 0.1.0 | bootstrap / 响应自动包装 / 两种分页 / 文件预签名直传与流式下载 / 日志 / 慢SQL / Redis锁 / JWT 认证闭环 / OpenAPI Resp[T] / pyproject 包化 / baseline 迁移 / 六层分层配置（SG_PROFILE 自由链 + .env.example） |
-| 待办 | STS 临时凭证、Qdrant 异步包装层、refresh token 轮换与重放防护 |
+| 0.2.0 | 全局限流中间件 / 请求体大小限制 / Prometheus 指标（/metrics） / 优雅关闭与连接排空 / API 版本控制（Controller.version） / 权限系统（PermissionResolver + DataScope） / 配置类型校验 / 75 个单元测试 / SgError.to_json_response() 中间件安全 |
+| 待办 | STS 临时凭证、Qdrant 异步包装层、refresh token 轮换与重放防护、WebSocket 支持、事件总线 |
 
 **命名回溯**：本骨架前身曾用名 obfastapi（OceanBase 时期缩写）、keystone（因与 OpenStack Identity 撞名废弃）。若你在旧日志或 CI 里看到 ob. 命名空间或 OBResponse，均为历史残留，请替换为 sg. / Sg*。
 

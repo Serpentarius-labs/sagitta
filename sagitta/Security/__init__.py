@@ -1,6 +1,46 @@
 # sagitta/Security/__init__.py
-"""Sagitta 内置安全组件：主密钥派生、JWT 签发/校验、密码哈希、登录限流、
-认证中间件。
+"""Security 子包：JWT 认证、权限系统、限流、哈希、签名、登录守卫。
 
-宿主项目通过 ``sagitta.Security`` 引用，不要再自建顶级 ``Security`` 包。
+导入示例::
+
+    from sagitta.Security import JWT, require_data_scope, RateLimitMiddleware
 """
+from .jwt import JWT, TokenError, TokenPayload
+from .permissions import (
+    PermissionResolver, RolePermissionResolver,
+    set_permission_resolver, get_permission_resolver,
+    check_permission, require_permission,
+    DataScope, require_data_scope,
+)
+from .rate_limit import RateLimitMiddleware
+from .hash import PasswordHasher, NeedsRehashError
+from .login_guard import LoginGuard, LoginBlocked
+from .vault import Vault
+from .auth_middleware import (
+    JwtAuthMiddleware, current_user, require_role,
+    set_auth_cookies, clear_auth_cookies,
+)
+from .signer import Signer
+
+__all__ = [
+    # jwt
+    "JWT", "TokenError", "TokenPayload",
+    # permissions
+    "PermissionResolver", "RolePermissionResolver",
+    "set_permission_resolver", "get_permission_resolver",
+    "check_permission", "require_permission",
+    "DataScope", "require_data_scope",
+    # rate_limit
+    "RateLimitMiddleware",
+    # hash
+    "PasswordHasher", "NeedsRehashError",
+    # login_guard
+    "LoginGuard", "LoginBlocked",
+    # vault
+    "Vault",
+    # auth_middleware
+    "JwtAuthMiddleware", "current_user", "require_role",
+    "set_auth_cookies", "clear_auth_cookies",
+    # signer
+    "Signer",
+]

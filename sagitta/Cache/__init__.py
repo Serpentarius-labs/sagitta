@@ -4,11 +4,13 @@
 导入示例::
 
     from sagitta.Cache import RedisRegistry, redis_dep, cached, DistributedLock
+
+Qdrant 是可选依赖（pip install sagitta[qdrant]），未安装时
+QdrantRegistry/qdrant_dep 不可用但不影响 Redis 等核心功能。
 """
 from .redis import RedisRegistry, redis_dep
 from .lock import DistributedLock
 from .cached import cached
-from .qdrant import QdrantRegistry, qdrant_dep
 
 __all__ = [
     # redis
@@ -17,6 +19,11 @@ __all__ = [
     "DistributedLock",
     # cached
     "cached",
-    # qdrant
-    "QdrantRegistry", "qdrant_dep",
 ]
+
+# Qdrant 是可选依赖，未安装时跳过 re-export
+try:
+    from .qdrant import QdrantRegistry, qdrant_dep
+    __all__ += ["QdrantRegistry", "qdrant_dep"]
+except ImportError:
+    pass

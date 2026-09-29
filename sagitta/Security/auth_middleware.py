@@ -2,9 +2,10 @@ import re
 from contextvars import ContextVar
 from typing import Callable, List, Optional
 
-from fastapi import Depends, HTTPException, Request, Response
+from fastapi import Depends, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from ..Core.errors import UnauthorizedError, ForbiddenError
 from .jwt import JWT, TokenError, TokenPayload
 
 _ctx_user: ContextVar[Optional[TokenPayload]] = ContextVar("user", default=None)
@@ -102,13 +103,13 @@ class JwtAuthMiddleware(BaseHTTPMiddleware):
 def current_user(required: bool = True) -> Optional[TokenPayload]:
     u = _ctx_user.get()
     if required and u is None:
-        raise HTTPException(status_code=401, detail="未认证")
+        raise UnauthorizedError()
     return u
 
 
 def require_role(*roles: str):
     def dep(user: TokenPayload = Depends(current_user)):
         if not any(r in user.roles for r in roles):
-            raise HTTPException(status_code=403, detail="权限不足")
+            raise ForbiddenError()
         return user
     return dep

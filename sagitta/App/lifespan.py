@@ -8,7 +8,9 @@
 宿主项目如需在自己的启动/关闭逻辑里插一脚，用 `on_startup` / `on_shutdown`
 回调，不要另写一个 lifespan —— 那会绕过基础设施初始化与优雅关闭。
 """
+import asyncio
 import logging
+import signal
 from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator, Callable, List, Optional, Sequence
 
@@ -22,6 +24,14 @@ logger = logging.getLogger("sagitta")
 
 StartupHook = Callable[[FastAPI, SgSettings], Any]
 ShutdownHook = Callable[[FastAPI, SgSettings], Any]
+
+# 优雅关闭状态
+_shutting_down = False
+
+
+def is_shutting_down() -> bool:
+    """健康检查端点用：关闭中返回 True，让 /ready 返回 503 摘流量。"""
+    return _shutting_down
 
 
 def _init_log(settings: SgSettings) -> None:
@@ -71,6 +81,37 @@ def _close_qdrant() -> None:
         logger.debug("Qdrant 未初始化或已关闭", exc_info=True)
 
 
+async def _drain_inflight(timeout: float = 10.0) -> None:
+    """等待 in-flight 请求完成。
+
+    通过检查 ASGI 中间件层的活跃请求计数实现。如果框架无法获取
+    精确计数，则退化为固定等待（给 K8s 摘流量时间）。
+    """
+    # 尝试从 MetricsCollector 获取 in-progress 计数
+    try:
+        from ..Core.metrics import MetricsCollector
+        collector = MetricsCollector.instance()
+        deadline = asyncio.get_running_loop().time() + timeout
+        while True:
+            # 检查所有 method 的 in-progress 总和
+            total = sum(
+                v for (method,), v in collector.http_requests_in_progress.values.items()
+            )
+            if total <= 0:
+                logger.info("[shutdown] 所有 in-flight 请求已完成")
+                return
+            if asyncio.get_running_loop().time() > deadline:
+                logger.warning(
+                    "[shutdown] 等待 in-flight 请求超时（剩余 %d），强制关闭", total
+                )
+                return
+            await asyncio.sleep(0.1)
+    except Exception:
+        # 无 MetricsCollector 时退化为固定等待
+        logger.info("[shutdown] 固定等待 %.1fs 摘流量", min(timeout, 3.0))
+        await asyncio.sleep(min(timeout, 3.0))
+
+
 def make_lifespan(*, on_startup: Optional[Sequence[StartupHook]] = None,
                   on_shutdown: Optional[Sequence[ShutdownHook]] = None,
                   settings_provider: Optional[Callable[[], SgSettings]] = None):
@@ -111,6 +152,16 @@ def make_lifespan(*, on_startup: Optional[Sequence[StartupHook]] = None,
         try:
             yield
         finally:
+            # ---- 优雅关闭 ----
+            global _shutting_down
+            _shutting_down = True
+            logger.info("[shutdown] 收到关闭信号，开始优雅关闭...")
+
+            # 1) 等待 in-flight 请求完成（超时保护）
+            await _drain_inflight(timeout=settings.app.shutdown_timeout
+                                   if hasattr(settings.app, "shutdown_timeout") else 10.0)
+
+            # 2) 执行宿主关闭钩子
             for hook in reversed(shutdown_hooks):
                 try:
                     res = hook(app, settings)

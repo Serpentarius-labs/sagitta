@@ -36,6 +36,42 @@ class ConfigError(RuntimeError):
     """配置缺失或非法。启动期必须吵出来，不要留到运行期 500。"""
 
 
+def _typed_int(value: Any, field_path: str, *, default: int = 0) -> int:
+    """把配置值安全转为 int。非法时抛 ConfigError 并给出字段路径。"""
+    if value is None or value == "":
+        return default
+    try:
+        return int(value)
+    except (TypeError, ValueError) as e:
+        raise ConfigError(
+            f"配置项 {field_path!r} 的值 {value!r} 不是合法整数: {e}。"
+            f"请检查 conf/config.yaml 中该字段的类型。"
+        ) from e
+
+
+def _typed_float(value: Any, field_path: str, *, default: float = 0.0) -> float:
+    """把配置值安全转为 float。非法时抛 ConfigError 并给出字段路径。"""
+    if value is None or value == "":
+        return default
+    try:
+        return float(value)
+    except (TypeError, ValueError) as e:
+        raise ConfigError(
+            f"配置项 {field_path!r} 的值 {value!r} 不是合法浮点数: {e}。"
+        ) from e
+
+
+def _typed_bool(value: Any, field_path: str, *, default: bool = False) -> bool:
+    """把配置值安全转为 bool。"""
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() not in ("0", "false", "no", "off", "")
+    return bool(value)
+
+
 def _normalize_db_type(raw_type: str, url: str) -> str:
     """从显式 type 或 DSN scheme 推断数据库类型。"""
     t = (raw_type or "").strip().lower()
@@ -182,6 +218,8 @@ class SgSettings:
             check_do_leak=bool(app.get("check_do_leak", True)),
             wrap_response=bool(app.get("wrap_response", True)),
             build_commit=str(app.get("build_commit", "")),
+            shutdown_timeout=_typed_float(app.get("shutdown_timeout", 10.0),
+                                          "app.shutdown_timeout", default=10.0),
         )
         # 扁平别名（历史兼容）
         self.title = self.app.title
@@ -200,10 +238,11 @@ class SgSettings:
             origins = [o.strip() for o in origins.split(",") if o.strip()]
         self.server = SimpleNamespace(
             host=str(srv.get("host", "0.0.0.0")),
-            port=int(srv.get("port", 8000)),
-            workers=int(srv.get("workers", 1)),
+            port=_typed_int(srv.get("port", 8000), "server.port"),
+            workers=_typed_int(srv.get("workers", 1), "server.workers"),
             cors_origins=list(origins),
             cors_allow_credentials=bool(srv.get("cors_allow_credentials", True)),
+            max_body_bytes=_typed_int(srv.get("max_body_bytes", 0), "server.max_body_bytes"),
         )
         self.host = self.server.host
         self.port = self.server.port
@@ -303,6 +342,27 @@ class SgSettings:
         self.cookie_samesite = self.security.cookie_samesite
         self.login_max_attempts = self.security.login_max_attempts
         self.login_lock_seconds = self.security.login_lock_seconds
+
+        # ---- rate_limit ----
+        rl = r.get("rate_limit") or {}
+        self.rate_limit = SimpleNamespace(
+            enabled=_typed_bool(rl.get("enabled", True), "rate_limit.enabled", default=True),
+            redis=str(rl.get("redis", "default")),
+            default_requests=_typed_int(rl.get("default_requests", 100),
+                                        "rate_limit.default_requests", default=100),
+            default_window=_typed_int(rl.get("default_window", 60),
+                                      "rate_limit.default_window", default=60),
+            ip_requests=_typed_int(rl.get("ip_requests", 60),
+                                    "rate_limit.ip_requests", default=60),
+            ip_window=_typed_int(rl.get("ip_window", 60),
+                                  "rate_limit.ip_window", default=60),
+            user_requests=_typed_int(rl.get("user_requests", 200),
+                                     "rate_limit.user_requests", default=200),
+            user_window=_typed_int(rl.get("user_window", 60),
+                                    "rate_limit.user_window", default=60),
+            skip_paths=list(rl.get("skip_paths", ["/health", "/ready", "/metrics",
+                                                  "/docs", "/openapi.json"])),
+        )
 
     # ---- 访问器 ----
 

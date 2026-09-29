@@ -96,6 +96,11 @@ def mount_all(app, root_pkg: Optional[str] = None,
                 f"{type(e).__name__}: {e}"
             ) from e
         prefix = getattr(cls, "prefix", "") or ""
+        # API 版本控制：version="v1" → 路由前缀变为 /v1/user
+        version = getattr(cls, "version", None)
+        if version:
+            version = version.strip("/")
+            prefix = f"/{version}{prefix}"
         app.include_router(router, prefix=prefix,
                            tags=list(getattr(cls, "tags", []) or []))
         _mounted.add(cls)

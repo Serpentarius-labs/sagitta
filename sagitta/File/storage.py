@@ -62,6 +62,6 @@ class S3Backend(StorageBackend):
 
 
 def build_backend(provider: Provider, cfg) -> S3Backend:
-    return S3Backend(cfg.endpoint, cfg.bucket, cfg.access_key_id, cfg.access_key_secret,
-                     region=cfg.region, public_endpoint=cfg.public_endpoint or None,
+    return S3Backend(cfg.endpoint, cfg.bucket, cfg.access_key, cfg.secret_key,
+                     region=cfg.region, public_endpoint=cfg.public_domain or None,
                      force_path_style=(provider != "aliyun"))

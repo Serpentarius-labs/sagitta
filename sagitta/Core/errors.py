@@ -44,6 +44,29 @@ class SgError(Exception):
         self.data = data
         super().__init__(self.message)
 
+    def to_json_response(self, *, echo_trace: bool = False):
+        """构造统一的 JSONResponse。
+
+        中间件层（BaseHTTPMiddleware.dispatch）抛出的异常不会经过
+        FastAPI 的 ExceptionMiddleware（它在中间件栈内层），因此中间件
+        不能 raise SgError——必须直接返回 Response。此方法提供与
+        bootstrap.py 异常处理器一致的响应壳构造逻辑。
+        """
+        from fastapi.responses import JSONResponse
+
+        from ..Log.logger import get_trace
+
+        body: dict = {"code": self.code, "message": self.message, "data": self.data}
+        tid, _ = get_trace()
+        if echo_trace and tid and tid != "-":
+            body["trace_id"] = tid
+        headers = {"X-Trace-Id": tid} if tid and tid != "-" else {}
+        return JSONResponse(
+            status_code=self.status_code,
+            content=body,
+            headers=headers,
+        )
+
 
 # ---------- 协议级异常：HTTP 大类由类型固定 ----------
 

@@ -24,7 +24,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from ..Config.setting import SgSettings, get_settings
 from ..Core.errors import SgError
 from ..Log.logger import get_trace
-from .lifespan import ShutdownHook, StartupHook, make_lifespan
+from .lifespan import ShutdownHook, StartupHook, is_shutting_down, make_lifespan
 
 logger = logging.getLogger("sagitta")
 
@@ -181,6 +181,13 @@ def register_health(app: FastAPI, *, db_names: Optional[Sequence[str]] = None,
 
     @app.get(f"{prefix}/ready", include_in_schema=False, tags=["运维"])
     async def ready() -> JSONResponse:
+        # 优雅关闭中：返回 503 让 K8s 立即摘流量
+        if is_shutting_down():
+            return JSONResponse(
+                status_code=503,
+                content={"status": "shutting_down", "probes": {}},
+                headers=_err_headers(),
+            )
         probes: Dict[str, str] = {}
         status = 200
 
@@ -283,6 +290,31 @@ def bootstrap(
             app.add_middleware(cls, **(kw or {}))
         else:
             app.add_middleware(spec)
+
+    # ---- 请求体大小限制 ----
+    if cfg.server.max_body_bytes > 0:
+        from ..Core.body_limit import BodySizeLimitMiddleware
+        app.add_middleware(BodySizeLimitMiddleware,
+                           max_body_bytes=cfg.server.max_body_bytes)
+
+    # ---- 全局限流 ----
+    if cfg.rate_limit.enabled:
+        from ..Security.rate_limit import RateLimitMiddleware
+        app.add_middleware(RateLimitMiddleware,
+                           enabled=cfg.rate_limit.enabled,
+                           redis_client_name=cfg.rate_limit.redis,
+                           default_requests=cfg.rate_limit.default_requests,
+                           default_window=cfg.rate_limit.default_window,
+                           ip_requests=cfg.rate_limit.ip_requests,
+                           ip_window=cfg.rate_limit.ip_window,
+                           user_requests=cfg.rate_limit.user_requests,
+                           user_window=cfg.rate_limit.user_window,
+                           skip_paths=cfg.rate_limit.skip_paths)
+
+    # ---- Prometheus 指标采集 ----
+    from ..Core.metrics import MetricsMiddleware, register_metrics
+    app.add_middleware(MetricsMiddleware)
+    register_metrics(app, prefix=health_prefix)
 
     # ---- Trace：最后添加 = 最外层执行，覆盖全部耗时 ----
     from ..Log.middleware import TraceMiddleware

@@ -37,9 +37,12 @@ class LogBackend:
 
     @classmethod
     def patch_current(cls, **kw) -> None:
-        if cls._kind == "loguru":
-            from loguru import logger
-            logger.bind(**{k: v for k, v in kw.items() if v})
+        """同步 trace 上下文到当前日志后端。
+
+        loguru 后端通过 patcher 自动从 ContextVar 读取 trace_id，无需手动调用；
+        stdlib 后端通过 TraceFilter 读取。此方法仅用于需要显式设置
+        trace 的场景（如异步任务无中间件上下文时）。
+        """
         if kw.get("trace_id"):
             set_trace(kw["trace_id"], kw.get("span_id", "-"))
 
@@ -53,6 +56,20 @@ class LogBackend:
         from pathlib import Path
         import json
         logger.remove()
+
+        # patcher：每条日志记录自动从 ContextVar 注入 trace_id / span_id，
+        # 使 loguru 后端与 stdlib 后端的 trace 贯通行为一致。
+        # TraceMiddleware 已通过 set_trace() 设置了 ContextVar，
+        # 这里只需让 loguru 在格式化时读取即可。
+        from .logger import get_trace as _get_trace
+
+        def _trace_patcher(record):
+            tid, sid = _get_trace()
+            record["extra"].setdefault("trace_id", tid)
+            record["extra"].setdefault("span_id", sid)
+
+        logger.configure(patcher=_trace_patcher)
+
         level = cfg.level.upper()
         Path(cfg.root_dir).mkdir(parents=True, exist_ok=True)
         log_path = Path(cfg.root_dir) / "app.log"

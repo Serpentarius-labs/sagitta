@@ -77,12 +77,12 @@ class JWT:
 
     @classmethod
     async def revoke(cls, jti: str, ttl: int = TOKEN_TTL_ACCESS) -> None:
-        r = RedisRegistry.get("auth")
+        r = RedisRegistry.get_auth()
         await r.setex(f"jwt:black:{jti}", ttl, "1")
 
     @classmethod
     async def is_revoked(cls, jti: str) -> bool:
-        r = RedisRegistry.get("auth")
+        r = RedisRegistry.get_auth()
         return await r.exists(f"jwt:black:{jti}") > 0
 
     @classmethod

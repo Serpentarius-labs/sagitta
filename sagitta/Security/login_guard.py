@@ -18,7 +18,7 @@ class LoginBlocked(HTTPException):
 class LoginGuard:
     @classmethod
     async def check(cls, identity: str, ip: str) -> None:
-        r = RedisRegistry.get("auth")
+        r = RedisRegistry.get_auth()
         for key in (f"lg:u:{identity}", f"lg:ip:{ip}"):
             cnt = await r.get(key)
             if cnt and int(cnt) >= MAX_ATTEMPTS:
@@ -27,7 +27,7 @@ class LoginGuard:
 
     @classmethod
     async def fail(cls, identity: str, ip: str) -> None:
-        r = RedisRegistry.get("auth")
+        r = RedisRegistry.get_auth()
         for key in (f"lg:u:{identity}", f"lg:ip:{ip}"):
             n = await r.incr(key)
             if n == 1:
@@ -38,5 +38,5 @@ class LoginGuard:
 
     @classmethod
     async def success(cls, identity: str, ip: str) -> None:
-        r = RedisRegistry.get("auth")
+        r = RedisRegistry.get_auth()
         await r.delete(f"lg:u:{identity}", f"lg:ip:{ip}")

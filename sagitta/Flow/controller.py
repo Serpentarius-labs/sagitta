@@ -14,7 +14,7 @@ from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel
 
 from ..Core.inject import autowire
-from .registry import register, report, reset_for_test  # noqa: F401  (re-export)
+from .registry import register, registered, report, reset_for_test  # noqa: F401  (re-export)
 from .registry import mount_all as _registry_mount_all
 from .response import resp_model_for, wrap_endpoint
 
@@ -37,6 +37,7 @@ class Controller:
     用法：
         class UserController(Controller):
             prefix = "/user"
+            version = "v1"           # 路由将挂载到 /v1/user
             tags = ["用户"]
             svc: UserService          # 自动注入，无需 __init__
 
@@ -47,6 +48,7 @@ class Controller:
 
     prefix: str = ""
     tags: List[str] = []
+    version: Optional[str] = None  # API 版本前缀，如 "v1" → 路由前缀 /v1/user
     _router: Optional[APIRouter] = None
 
     # ---- 路由声明 ----

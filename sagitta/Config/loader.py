@@ -127,6 +127,17 @@ DEFAULTS: Dict[str, Any] = {
         "login_max_attempts": 5,
         "login_lock_seconds": 300,
     },
+    "rate_limit": {
+        "enabled": True,
+        "redis": "default",
+        "default_requests": 100,
+        "default_window": 60,
+        "ip_requests": 60,
+        "ip_window": 60,
+        "user_requests": 200,
+        "user_window": 60,
+        "skip_paths": ["/health", "/ready", "/metrics", "/docs", "/openapi.json"],
+    },
 }
 
 # 兼容旧扁平写法：`database:` 节 → `db.default`

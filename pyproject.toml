@@ -16,7 +16,7 @@ authors = [{ name = "sagitta" }]
 dependencies = [
     "fastapi>=0.110",
     "uvicorn>=0.29",
-    "sqlalchemy>=2.0.30",
+    "sqlalchemy[asyncio]>=2.0.30",
     "pydantic>=2.7",
     "pyyaml>=6.0",
     "redis>=5.0",

@@ -1,4 +1,4 @@
-﻿# Sagitta（蛇鹫）
+# sagittapi（蛇鹫）
 
 FastAPI 工程化骨架。外表克制，下手狠，专治业务代码里的蛇。
 
@@ -8,7 +8,7 @@ FastAPI 工程化骨架。外表克制，下手狠，专治业务代码里的蛇
 
 ## 一、它是什么
 
-Sagitta 不只是一个库，也不只是一套脚手架模板。它是一套**跑起来就能写业务的 FastAPI 工程约定**，以可安装、可导入的 Python 包形式提供（见 pyproject.toml）。
+sagittapi 不只是一个库，也不只是一套脚手架模板。它是一套**跑起来就能写业务的 FastAPI 工程约定**，以可安装、可导入的 Python 包形式提供（见 pyproject.toml）。
 
 它替你定死五件事：
 
@@ -33,7 +33,7 @@ FastAPI 的官方示例停在「一个 main.py 里写三个路由」。真实项
 - 慢 SQL 拖垮实例，但没人知道是哪条，因为 SQLAlchemy 的 echo 开起来就是洪水。
 - 测试里直接 import 业务代码，结果配置没加载，报 settings 未初始化，于是大家开始在测试里手抄一遍 bootstrap。
 
-Sagitta 的做法是**把这些坑变成运行时错误**，而不是靠 Code Review 提醒。违规代码在开发环境就会炸，且报错信息会告诉你怎么改。
+sagittapi 的做法是**把这些坑变成运行时错误**，而不是靠 Code Review 提醒。违规代码在开发环境就会炸，且报错信息会告诉你怎么改。
 
 ## 三、架构分层
 
@@ -72,6 +72,67 @@ app/                        # 业务层：你只该在这里写代码
 
 判断标准：如果一段代码删掉 sagittapi 就完全看不懂了，说明它放错了位置。
 
+## 三点五、安装
+
+### 从 PyPI 安装（推荐）
+
+`
+pip install sagittapi[pg,alembic,loguru]
+`
+
+按需选择可选依赖：
+
+| Extra | 包含 | 何时需要 |
+|---|---|---|
+| [pg] | asyncpg + psycopg | PostgreSQL |
+| [mysql] | asyncmy + PyMySQL | MySQL |
+| [sqlite] | aiosqlite | SQLite |
+| [s3] | boto3 + aiobotocore | S3/MinIO 文件存储 |
+| [alembic] | alembic | 数据库迁移 |
+| [qdrant] | qdrant-client | 向量搜索 |
+| [loguru] | loguru | 结构化日志 |
+| [cli] | typer | sgcli 脚手架工具 |
+| [test] | pytest + pytest-asyncio | 单元测试 |
+
+可组合安装，如：pip install sagittapi[pg,s3,alembic,cli]
+
+### 从 GitHub Release 安装
+
+`
+pip install https://github.com/Serpentarius-labs/sagitta/releases/download/v0.1.0/sagittapi-0.1.0-py3-none-any.whl
+`
+
+### 本地开发安装
+
+`
+git clone https://github.com/Serpentarius-labs/sagitta.git
+cd sagitta
+pip install -e .
+`
+
+## 三点六、CLI 脚手架（sgcli）
+
+安装 CLI 支持：pip install sagittapi[cli]
+
+| 命令 | 用途 |
+|---|---|
+| sgcli init <name> | 生成项目骨架（目录结构 + config.yaml + migrations） |
+| sgcli create <module> | 创建业务模块（Controller/Service/DO/DTO/VO/Repo 六件套） |
+| sgcli serve | 启动 uvicorn 开发服务器 |
+| sgcli migrate "<msg>" | 生成 Alembic autogenerate 迁移脚本 |
+| sgcli version | 查看版本 |
+
+`
+sgcli init myapi
+cd myapi
+python -m venv .venv && .venv\Scripts\activate   # Windows
+# source .venv/bin/activate                      # Linux/macOS
+pip install -r requirements.txt
+sgcli create users
+sgcli serve
+`
+
+CLI help 为结构化英文输出，LLM agent 可直接解析使用。
 ## 四、三分钟跑起来
 
 ### 4.1 环境
@@ -317,7 +378,7 @@ async def me(self, user: TokenPayload = Depends(current_user)): ...
 - `JwtAuthMiddleware` 放在 Trace 之内（见 main.py），认证失败也有 trace_id。
 - 中间件对每个令牌查 Redis 吊销名单——登出即时生效，而不是等 access 自然过期。
 - 登录接口挂 `LoginGuard`：失败计数 + 锁定 + 递增延迟，防暴力破解；仅凭证失败计数，DB 故障不锁人。
-- 密码统一 Argon2id 哈希（`sagittapi.Security.hash`），明文只在 DTO 短暂存在。
+- 密码统一 Argon2id 哈希（`sagittapi.Security.PasswordHasher`），明文只在 DTO 短暂存在。
 - prod 必须 `security.cookie_secure=true`。
 
 ### 7.7 限流与请求体限制
@@ -409,7 +470,7 @@ alembic downgrade base        # 回滚到空库
 
 > 混用分级（0~3 级）与适用场景见 [使用指南 · 第三、四章](docs/guide.md)；本节给出落地清单。
 
-1. 把 sagitta-fastapi 作为依赖包安装（`pip install -e .` 或发布到私有源），**不要把 sagittapi/ 拷贝进业务目录**。
+1. 把 sagittapi 作为依赖包安装（`pip install sagittapi` 或 `pip install -e .` 本地开发），**不要把 sagittapi/ 拷贝进业务目录**（`pip install -e .` 或发布到私有源），**不要把 sagittapi/ 拷贝进业务目录**。
 2. 保留你现有的 do/dto/vo/services/controllers 目录结构，让类继承框架基类即可被自动发现；暂不改造的路由可作为原生路由与 Controller 共存（指南 3.3）。
 3. **优先改造的部分**（按收益排序）：
    - 统一响应壳 → 消除前后端对 code/message 的歧义，收益立竿见影
@@ -434,21 +495,21 @@ A：会。框架侧只负责初始化和探活，业务侧请用 anyio.to_thread
 
 **Q：AGPL 传染性？**
 
-A：Sagitta 本身采用 MIT 协议。MinIO 服务端以 AGPL 分发，内部自用无碍；若对外交付 SaaS 或分发镜像，请自行评估合规风险。
+A：sagittapi 本身采用 MIT 协议。MinIO 服务端以 AGPL 分发，内部自用无碍；若对外交付 SaaS 或分发镜像，请自行评估合规风险。
 
 **Q：名字怎么念？**
 
-A：sa-GIT-ta（拉丁语「箭」）。中文叫「蛇鹫」，也叫秘书鸟。
+A：sa-GIT-ta-pi（拉丁语「箭」+ API）。中文叫「蛇鹫」，也叫秘书鸟。PyPI 包名 sagittapi，CLI 工具 sgcli。
 
 ## 十一、版本与约定演进
 
 | 版本 | 状态 |
 |---|---|
-| 0.1.0 | bootstrap / 响应自动包装 / 两种分页 / 文件预签名直传与流式下载 / 日志 / 慢SQL / Redis锁 / JWT 认证闭环 / OpenAPI Resp[T] / pyproject 包化 / baseline 迁移 / 六层分层配置（SG_PROFILE 自由链 + .env.example） |
+| 0.1.0 | 包名 sagittapi（PyPI 独占，避免与天文研究包 sagitta 冲突）/ sgcli 脚手架 CLI / bootstrap / 响应自动包装 / 两种分页 / 文件预签名直传与流式下载 / 日志 / 慢SQL / Redis锁 / JWT 认证闭环 / OpenAPI Resp[T] / pyproject 包化 / baseline 迁移 / 六层分层配置（SG_PROFILE 自由链 + .env.example） |
 | 0.2.0 | 全局限流中间件 / 请求体大小限制 / Prometheus 指标（/metrics） / 优雅关闭与连接排空 / API 版本控制（Controller.version） / 权限系统（PermissionResolver + DataScope） / 配置类型校验 / 75 个单元测试 / SgError.to_json_response() 中间件安全 |
 | 待办 | STS 临时凭证、Qdrant 异步包装层、refresh token 轮换与重放防护、WebSocket 支持、事件总线 |
 
-**命名回溯**：本骨架前身曾用名 obfastapi（OceanBase 时期缩写）、keystone（因与 OpenStack Identity 撞名废弃）。若你在旧日志或 CI 里看到 ob. 命名空间或 OBResponse，均为历史残留，请替换为 sg. / Sg*。
+**命名回溯**：本骨架前身曾用名 obfastapi（OceanBase 时期缩写）、keystone（因与 OpenStack Identity 撞名废弃）。本框架在 PyPI 上曾因同名 `sagitta`（天文研究包）冲突，已更名为 `sagittapi`。若你在旧日志或 CI 里看到 ob. 命名空间或 OBResponse，均为历史残留，请替换为 sg. / Sg*（现名 sagittapi）。
 
 ## 十二、贡献
 

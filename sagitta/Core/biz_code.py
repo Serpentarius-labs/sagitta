@@ -1,4 +1,4 @@
-# sagitta/Core/biz_code.py
+﻿# sagitta/Core/biz_code.py
 """业务码契约：HTTP status 与 body.code 解耦的注册中心。
 
 两层语义（对应国内主流工程实践）：
@@ -10,7 +10,7 @@
 
 宿主项目的唯一职责是维护一本码册（通常是 ``app/biz_code.py``）：
 
-    from sagitta.Core.biz_code import BizCode, BizCodes
+    from sagittapi.Core.biz_code import BizCode, BizCodes
 
     class UserCodes(BizCodes):
         USER_NOT_FOUND  = BizCode(404, "用户不存在")

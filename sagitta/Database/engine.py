@@ -1,4 +1,4 @@
-# sagitta/Database/engine.py
+﻿# sagitta/Database/engine.py
 """引擎与会话工厂注册表：多数据源、连接池、慢 SQL 与连接池观测接线。
 
 此前 `attach_slow_query_listener` / `attach_pool_queue_monitor` 全库零调用点，
@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import (AsyncEngine, async_sessionmaker,
 
 from .slow_query import attach_pool_queue_monitor, attach_slow_query_listener
 
-logger = logging.getLogger("sagitta")
+logger = logging.getLogger("sagittapi")
 
 
 def _cfg_get(cfg: Any, key: str, default: Any = None) -> Any:

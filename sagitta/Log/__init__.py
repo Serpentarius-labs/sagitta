@@ -1,9 +1,9 @@
-# sagitta/Log/__init__.py
+﻿# sagitta/Log/__init__.py
 """Log 子包：trace 上下文、TraceMiddleware、日志初始化。
 
 导入示例::
 
-    from sagitta.Log import get_trace, set_trace, TraceMiddleware, init_root_logger
+    from sagittapi.Log import get_trace, set_trace, TraceMiddleware, init_root_logger
 """
 from .logger import (
     get_trace, set_trace, reset_trace,

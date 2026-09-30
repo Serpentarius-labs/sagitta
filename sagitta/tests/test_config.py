@@ -1,4 +1,4 @@
-# tests/test_config.py
+﻿# tests/test_config.py
 """配置装载与类型校验单元测试。
 
 覆盖：
@@ -10,7 +10,7 @@
 """
 import pytest
 
-from sagitta.Config.setting import SgSettings, ConfigError, _typed_int, _typed_bool
+from sagittapi.Config.setting import SgSettings, ConfigError, _typed_int, _typed_bool
 
 
 class TestDefaults:
@@ -111,7 +111,7 @@ class TestEnvOverride:
 
     def test_env_override(self, monkeypatch):
         monkeypatch.setenv("SG_SERVER_PORT", "9999")
-        from sagitta.Config.loader import ConfigLoader
+        from sagittapi.Config.loader import ConfigLoader
         loader = ConfigLoader(config_path=None)
         raw = loader.reload()
         # 环境变量在 _apply_env 中被应用

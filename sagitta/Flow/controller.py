@@ -1,4 +1,4 @@
-# sagitta/Flow/controller.py
+﻿# sagitta/Flow/controller.py
 """Controller 基类：路由声明 + 自动登记 + 依赖注入 + 响应守卫接线。
 
 与 registry 的分工：
@@ -18,7 +18,7 @@ from .registry import register, registered, report, reset_for_test  # noqa: F401
 from .registry import mount_all as _registry_mount_all
 from .response import resp_model_for, wrap_endpoint
 
-logger = logging.getLogger("sagitta")
+logger = logging.getLogger("sagittapi")
 
 
 def _route_meta(path: str, methods: Sequence[str], **extra: Any) -> Dict[str, Any]:

@@ -1,4 +1,4 @@
-# app/biz_code.py
+﻿# app/biz_code.py
 """Demo 业务码册 —— 宿主项目「业务状态码集中定义处」的标准位置。
 
 约定：
@@ -15,7 +15,7 @@
 接口声明（自动进入 /docs 的响应码表）：
     @raises(UserCodes.USERNAME_TAKEN)
 """
-from sagitta.Core.biz_code import BizCode, BizCodes
+from sagittapi.Core.biz_code import BizCode, BizCodes
 
 
 class UserCodes(BizCodes):

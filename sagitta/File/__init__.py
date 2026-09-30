@@ -1,9 +1,9 @@
-# sagitta/File/__init__.py
+﻿# sagitta/File/__init__.py
 """File 子包：S3 兼容存储后端、流式响应。
 
 导入示例::
 
-    from sagitta.File import FileService, build_backend, SgFileResponse
+    from sagittapi.File import FileService, build_backend, SgFileResponse
 
 S3 后端依赖 boto3/aiobotocore（pip install sagitta[s3]），
 未安装时 S3Backend/build_backend 不可用但不影响 FileService 基础功能。

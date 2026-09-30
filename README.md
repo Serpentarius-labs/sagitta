@@ -1,4 +1,4 @@
-# Sagitta（蛇鹫）
+﻿# Sagitta（蛇鹫）
 
 FastAPI 工程化骨架。外表克制，下手狠，专治业务代码里的蛇。
 
@@ -46,7 +46,7 @@ Sagitta 的做法是**把这些坑变成运行时错误**，而不是靠 Code Re
 ```
 
 ```
-sagitta/                  # 框架层：你不该改这里
+sagittapi/                  # 框架层：你不该改这里
 ├── App/      bootstrap, lifespan
 ├── Config/   yaml + env 合并加载，SgSettings
 ├── Core/     依赖注入容器、ServiceBase、指标采集、请求体限制
@@ -70,7 +70,7 @@ app/                        # 业务层：你只该在这里写代码
                             # 路由，继承 Controller 自动挂载
 ```
 
-判断标准：如果一段代码删掉 sagitta 就完全看不懂了，说明它放错了位置。
+判断标准：如果一段代码删掉 sagittapi 就完全看不懂了，说明它放错了位置。
 
 ## 四、三分钟跑起来
 
@@ -317,7 +317,7 @@ async def me(self, user: TokenPayload = Depends(current_user)): ...
 - `JwtAuthMiddleware` 放在 Trace 之内（见 main.py），认证失败也有 trace_id。
 - 中间件对每个令牌查 Redis 吊销名单——登出即时生效，而不是等 access 自然过期。
 - 登录接口挂 `LoginGuard`：失败计数 + 锁定 + 递增延迟，防暴力破解；仅凭证失败计数，DB 故障不锁人。
-- 密码统一 Argon2id 哈希（`sagitta.Security.hash`），明文只在 DTO 短暂存在。
+- 密码统一 Argon2id 哈希（`sagittapi.Security.hash`），明文只在 DTO 短暂存在。
 - prod 必须 `security.cookie_secure=true`。
 
 ### 7.7 限流与请求体限制
@@ -361,7 +361,7 @@ GET /metrics 返回 Prometheus 文本格式，无需额外依赖：
 权限通过 PermissionResolver 解析，默认从 JWT roles 映射。宿主可注册自定义 resolver 对接 Casbin / ACL 表：
 
 ```
-from sagitta.Security.permissions import set_permission_resolver, PermissionResolver
+from sagittapi.Security.permissions import set_permission_resolver, PermissionResolver
 
 class CasbinResolver(PermissionResolver):
     def resolve(self, user) -> set:
@@ -409,7 +409,7 @@ alembic downgrade base        # 回滚到空库
 
 > 混用分级（0~3 级）与适用场景见 [使用指南 · 第三、四章](docs/guide.md)；本节给出落地清单。
 
-1. 把 sagitta 作为依赖包安装（`pip install -e .` 或发布到私有源），**不要把 sagitta/ 拷贝进业务目录**。
+1. 把 sagitta-fastapi 作为依赖包安装（`pip install -e .` 或发布到私有源），**不要把 sagittapi/ 拷贝进业务目录**。
 2. 保留你现有的 do/dto/vo/services/controllers 目录结构，让类继承框架基类即可被自动发现；暂不改造的路由可作为原生路由与 Controller 共存（指南 3.3）。
 3. **优先改造的部分**（按收益排序）：
    - 统一响应壳 → 消除前后端对 code/message 的歧义，收益立竿见影
@@ -453,5 +453,5 @@ A：sa-GIT-ta（拉丁语「箭」）。中文叫「蛇鹫」，也叫秘书鸟�
 ## 十二、贡献
 
 - 框架层的改动请附带理由：**这条规则拦住了什么真实的坑？**
-- 业务特定的逻辑请留在 app/，不要往 sagitta/ 里塞。
+- 业务特定的逻辑请留在 app/，不要往 sagittapi/ 里塞。
 - 提交前跑一遍清零验证：grep -rn "obfastapi|OBResponse|\"ob\." 应无命中。

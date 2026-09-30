@@ -1,15 +1,15 @@
-import os
+﻿import os
 import time
 from dataclasses import dataclass, field
 from typing import List, Optional
 
 import jwt
 
-from sagitta.Cache.redis import RedisRegistry
+from ..Cache.redis import RedisRegistry
 
 TOKEN_TTL_ACCESS = 15 * 60
 TOKEN_TTL_REFRESH = 7 * 24 * 3600
-ISSUER = "sagitta"
+ISSUER = "sagittapi"
 
 
 class TokenError(Exception):
@@ -88,6 +88,6 @@ class JWT:
     @classmethod
     def _key(cls, kid: str) -> bytes:
         if kid not in cls._keys:
-            from sagitta.Security.vault import Vault
+            from .vault import Vault
             cls._keys[kid] = Vault.get("jwt_sign")
         return cls._keys[kid]

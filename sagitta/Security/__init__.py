@@ -1,9 +1,9 @@
-# sagitta/Security/__init__.py
+﻿# sagitta/Security/__init__.py
 """Security 子包：JWT 认证、权限系统、限流、哈希、签名、登录守卫。
 
 导入示例::
 
-    from sagitta.Security import JWT, require_data_scope, RateLimitMiddleware
+    from sagittapi.Security import JWT, require_data_scope, RateLimitMiddleware
 """
 from .jwt import JWT, TokenError, TokenPayload
 from .permissions import (

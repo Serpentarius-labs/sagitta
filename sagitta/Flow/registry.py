@@ -1,4 +1,4 @@
-# sagitta/Flow/registry.py
+﻿# sagitta/Flow/registry.py
 """控制器中央登记表：所有路由的唯一可信来源。
 
 为什么用登记表而不是反射 `__subclasses__`：
@@ -15,7 +15,7 @@
 import logging
 from typing import Callable, List, Optional, Tuple
 
-logger = logging.getLogger("sagitta")
+logger = logging.getLogger("sagittapi")
 
 
 class RegistryError(RuntimeError):
@@ -76,7 +76,7 @@ def mount_all(app, root_pkg: Optional[str] = None,
                **默认不过滤**——框架不应假设宿主业务包名。
     on_mount : 每个控制器挂载后的回调（用于宿主侧记录）。
     """
-    from sagitta.Flow.controller import Controller
+    from .controller import Controller
 
     count = 0
     for cls in _registry:

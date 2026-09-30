@@ -2,7 +2,7 @@ import asyncio
 
 from fastapi import HTTPException
 
-from sagitta.Cache.redis import RedisRegistry
+from ..Cache.redis import RedisRegistry
 
 MAX_ATTEMPTS = 5
 LOCK_SECONDS = 300

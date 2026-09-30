@@ -1,4 +1,4 @@
-# app/controllers/auth_controller.py
+﻿# app/controllers/auth_controller.py
 """认证 Controller —— 登录 / 刷新 / 登出 / 当前用户的**正确示范**。
 
 演示要点：
@@ -12,16 +12,16 @@ from uuid import UUID
 from fastapi import Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from sagitta.Core.errors import UnauthorizedError
-from sagitta.Database.session import session_dep
-from sagitta.Flow.controller import Controller
-from sagitta.Security.auth_middleware import (
+from sagittapi.Core.errors import UnauthorizedError
+from sagittapi.Database.session import session_dep
+from sagittapi.Flow.controller import Controller
+from sagittapi.Security.auth_middleware import (
     REFRESH_COOKIE, clear_auth_cookies, current_user, set_auth_cookies,
 )
-from sagitta.Security.jwt import (
+from sagittapi.Security.jwt import (
     JWT, TOKEN_TTL_ACCESS, TOKEN_TTL_REFRESH, TokenError, TokenPayload,
 )
-from sagitta.Security.login_guard import LoginGuard
+from sagittapi.Security.login_guard import LoginGuard
 
 from dto.auth_dto import LoginDTO
 from services.auth_service import AuthService

@@ -1,9 +1,9 @@
-# sagitta/Cache/__init__.py
+﻿# sagitta/Cache/__init__.py
 """Cache 子包：Redis 连接池、分布式锁、装饰器缓存、Qdrant 向量库。
 
 导入示例::
 
-    from sagitta.Cache import RedisRegistry, redis_dep, cached, DistributedLock
+    from sagittapi.Cache import RedisRegistry, redis_dep, cached, DistributedLock
 
 Qdrant 是可选依赖（pip install sagitta[qdrant]），未安装时
 QdrantRegistry/qdrant_dep 不可用但不影响 Redis 等核心功能。

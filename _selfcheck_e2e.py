@@ -1,4 +1,4 @@
-"""端到端验证：完整 demo 应用连真实 PG 跑 CRUD + 分页 + 软删除。
+﻿"""端到端验证：完整 demo 应用连真实 PG 跑 CRUD + 分页 + 软删除。
 证明守卫/注入/事务/Repository/两种分页在真实 HTTP + 真实 DB 下全部生效。
 跑完自动清表。
 """
@@ -20,8 +20,8 @@ import asyncio
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from sagitta.Database.base import Base
-from sagitta.Config.setting import get_settings
+from sagittapi.Database.base import Base
+from sagittapi.Config.setting import get_settings
 
 PASS, FAIL = [], []
 

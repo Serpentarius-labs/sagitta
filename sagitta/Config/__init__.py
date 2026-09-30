@@ -1,9 +1,9 @@
-# sagitta/Config/__init__.py
+﻿# sagitta/Config/__init__.py
 """Config 子包：YAML + env 合并加载、类型校验。
 
 导入示例::
 
-    from sagitta.Config import SgSettings, get_settings, ConfigError
+    from sagittapi.Config import SgSettings, get_settings, ConfigError
 """
 from .setting import (
     SgSettings, DbConfig, ConfigError,

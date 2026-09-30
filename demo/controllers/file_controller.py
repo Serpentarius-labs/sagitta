@@ -1,4 +1,4 @@
-# app/controllers/file_controller.py
+﻿# app/controllers/file_controller.py
 """文件 Controller —— 对象存储直传 / 分片 / 下载的**正确示范**。
 
 链路设计（为什么这样分）：
@@ -16,10 +16,10 @@ from typing import Optional
 
 from fastapi import Query, Request
 
-from sagitta.Core.inject import Inject
-from sagitta.File.response import SgFileResponse
-from sagitta.File.service import FileService
-from sagitta.Flow.controller import Controller
+from sagittapi.Core.inject import Inject
+from sagittapi.File.response import SgFileResponse
+from sagittapi.File.service import FileService
+from sagittapi.Flow.controller import Controller
 
 from dto.file_dto import (
     CompleteMultipartDTO, MultipartRefDTO, UploadPresignDTO,

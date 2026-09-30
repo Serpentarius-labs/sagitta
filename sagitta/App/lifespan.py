@@ -1,4 +1,4 @@
-# sagitta/App/lifespan.py
+﻿# sagitta/App/lifespan.py
 """完整生命周期：Log → DB（含慢 SQL 监听）→ Redis → Qdrant。
 
 这是**唯一**的 lifespan 实现。此前 bootstrap() 里另有一个只初始化 Redis 的
@@ -20,7 +20,7 @@ from ..Cache.redis import RedisRegistry
 from ..Config.setting import SgSettings, get_settings
 from ..Database.engine import EngineRegistry
 
-logger = logging.getLogger("sagitta")
+logger = logging.getLogger("sagittapi")
 
 StartupHook = Callable[[FastAPI, SgSettings], Any]
 ShutdownHook = Callable[[FastAPI, SgSettings], Any]
@@ -40,7 +40,7 @@ def _init_log(settings: SgSettings) -> None:
         from ..Log.backend import LogBackend
         LogBackend.init(settings.log.backend, settings.log)
     except Exception:
-        logging.getLogger("sagitta").exception(
+        logging.getLogger("sagittapi").exception(
             "日志后端 %r 初始化失败，退回 stdlib 默认行为", settings.log.backend
         )
 
@@ -184,7 +184,7 @@ def make_lifespan(*, on_startup: Optional[Sequence[StartupHook]] = None,
     return lifespan
 
 
-# 向后兼容：`from sagitta.App.lifespan import lifespan`
+# 向后兼容：`from sagittapi.App.lifespan import lifespan`
 lifespan = make_lifespan()
 
 __all__ = ["lifespan", "make_lifespan"]

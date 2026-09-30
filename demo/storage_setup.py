@@ -1,4 +1,4 @@
-# app/storage_setup.py
+﻿# app/storage_setup.py
 """对象存储装配 —— 宿主如何把框架文件组件接入应用的**正确示范**。
 
 关键时序：本函数必须在 bootstrap() **之前**调用。控制器在 mount 阶段
@@ -7,11 +7,11 @@
 """
 import logging
 
-from sagitta.Core.inject import Container
-from sagitta.File.service import FileService
-from sagitta.File.storage import S3Backend
+from sagittapi.Core.inject import Container
+from sagittapi.File.service import FileService
+from sagittapi.File.storage import S3Backend
 
-logger = logging.getLogger("sagitta")
+logger = logging.getLogger("sagittapi")
 
 
 def setup_file_storage(settings) -> FileService:

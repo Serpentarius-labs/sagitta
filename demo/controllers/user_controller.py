@@ -1,4 +1,4 @@
-# app/controllers/user_controller.py
+﻿# app/controllers/user_controller.py
 """用户 Controller —— 路由层的**正确示范**。
 
 约定（README 硬规则）：
@@ -15,10 +15,10 @@ from typing import List, Optional
 from fastapi import Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from sagitta.Core.biz_code import raises
-from sagitta.Database.session import session_dep
-from sagitta.Flow.controller import Controller
-from sagitta.Flow.page import CursorPage, CursorQuery, Page, PageQuery
+from sagittapi.Core.biz_code import raises
+from sagittapi.Database.session import session_dep
+from sagittapi.Flow.controller import Controller
+from sagittapi.Flow.page import CursorPage, CursorQuery, Page, PageQuery
 
 from biz_code import UserCodes
 from dto.user_dto import UserInsertDTO, UserUpdateDTO

@@ -1,4 +1,4 @@
-"""HTTP 层守卫验证：README 硬规则 1/2 是否真的生效。
+﻿"""HTTP 层守卫验证：README 硬规则 1/2 是否真的生效。
 不依赖 DB/Redis（配置里 db/redis 置空，只测 Flow 层契约）。
 """
 import warnings
@@ -11,13 +11,13 @@ from fastapi import Depends
 from pydantic import BaseModel
 from sqlalchemy import Column, Integer, String
 
-from sagitta.app.bootstrap import bootstrap
-from sagitta.Config.setting import build_settings, set_settings
-from sagitta.Core.inject import ServiceBase
-from sagitta.Database.base import Base
-from sagitta.Flow.controller import Controller, mount_all
-from sagitta.Flow.page import Page, PageQuery
-from sagitta.Flow.response import SgResponse
+from sagittapi.app.bootstrap import bootstrap
+from sagittapi.Config.setting import build_settings, set_settings
+from sagittapi.Core.inject import ServiceBase
+from sagittapi.Database.base import Base
+from sagittapi.Flow.controller import Controller, mount_all
+from sagittapi.Flow.page import Page, PageQuery
+from sagittapi.Flow.response import SgResponse
 
 PASS, FAIL = [], []
 

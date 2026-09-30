@@ -1,4 +1,4 @@
-# app/do/user_repo.py
+﻿# app/do/user_repo.py
 """UserRepository —— 数据访问层的**正确示范**。
 
 README 第 41 行：DO / Repository 是「唯一允许出现 SQL 的地方」。
@@ -16,7 +16,7 @@ from typing import List, Optional
 
 from sqlalchemy import or_, select
 
-from sagitta.Database.repository import BaseRepository
+from sagittapi.Database.repository import BaseRepository
 
 from .user_do import UserDO
 

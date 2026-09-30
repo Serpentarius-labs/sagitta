@@ -8,7 +8,7 @@ from urllib.parse import quote
 
 from fastapi import HTTPException
 
-from sagitta.File.storage import S3Backend
+from .storage import S3Backend
 
 
 class FileService:

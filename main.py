@@ -1,4 +1,4 @@
-# main.py
+﻿# main.py
 """应用入口 —— 宿主项目该怎么装配框架的**正确示范**。
 
 装配顺序很关键，注释里说明了为什么这么排。
@@ -8,16 +8,16 @@ from dotenv import load_dotenv
 
 load_dotenv()  # 先加载 .env，Vault 与配置都依赖它
 
-from sagitta.app.bootstrap import bootstrap
-from sagitta.Config.setting import get_settings
+from sagittapi.app.bootstrap import bootstrap
+from sagittapi.Config.setting import get_settings
 
 # ⚠️ 安全：Vault.init() 必须在任何签发/校验令牌的代码之前。
 # 未设置 SG_MASTER_KEY 时它会直接抛错并给出生成命令——这是刻意的，
 # 静默用一个空密钥比启动失败危险得多。
-from sagitta.Security.vault import Vault
+from sagittapi.Security.vault import Vault
 Vault.init()
 
-from sagitta.Security.auth_middleware import JwtAuthMiddleware
+from sagittapi.Security.auth_middleware import JwtAuthMiddleware
 
 settings = get_settings()
 
@@ -45,7 +45,7 @@ if FILE_ENABLED:
 # （aiohttp 连接池靠 GC 不可靠，热重载场景会泄漏）。
 _shutdown_hooks = []
 if FILE_ENABLED:
-    from sagitta.File.response import close_shared_oss_clients
+    from sagittapi.File.response import close_shared_oss_clients
     _shutdown_hooks.append(lambda app, settings: close_shared_oss_clients())
 
 app = bootstrap(

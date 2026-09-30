@@ -1,9 +1,9 @@
-# sagitta/__init__.py
+﻿# sagitta/__init__.py
 """Sagitta — FastAPI 工程化骨架。
 
 顶层快捷导入（IDE 自动补全友好）::
 
-    from sagitta import bootstrap, Controller, SgResponse, session_dep
+    from sagittapi import bootstrap, Controller, SgResponse, session_dep
 """
 from .app.bootstrap import bootstrap
 from .Flow import Controller, SgResponse, Page, PageQuery
@@ -24,6 +24,4 @@ __all__ = [
     "session_dep", "EngineRegistry", "BaseRepository",
     # config
     "SgSettings", "get_settings",
-    # version
-    "__version__",
 ]

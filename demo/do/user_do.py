@@ -1,4 +1,4 @@
-# app/do/user_do.py
+﻿# app/do/user_do.py
 """用户 DO —— 建表的**正确示范**。
 
 三个刻意的设计选择，业务表请照此办理：
@@ -23,7 +23,7 @@ from typing import Optional
 from sqlalchemy import JSON, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from sagitta.Database.base import SoftDeleteDO
+from sagittapi.Database.base import SoftDeleteDO
 
 
 class UserDO(SoftDeleteDO):

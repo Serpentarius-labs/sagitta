@@ -1,4 +1,4 @@
-# tests/test_middleware.py
+﻿# tests/test_middleware.py
 """中间件单元测试：限流 + 请求体大小限制。
 
 覆盖：
@@ -38,7 +38,7 @@ class TestRateLimitMiddleware:
 
     def test_disabled_passthrough(self):
         """enabled=False 时直接放行。"""
-        from sagitta.Security.rate_limit import RateLimitMiddleware
+        from sagittapi.Security.rate_limit import RateLimitMiddleware
 
         call_count = 0
 
@@ -54,7 +54,7 @@ class TestRateLimitMiddleware:
 
     def test_skip_paths_passthrough(self):
         """skip_paths 中的路径直接放行。"""
-        from sagitta.Security.rate_limit import RateLimitMiddleware
+        from sagittapi.Security.rate_limit import RateLimitMiddleware
 
         call_count = 0
 
@@ -71,7 +71,7 @@ class TestRateLimitMiddleware:
 
     def test_redis_unavailable_degrades_gracefully(self):
         """Redis 不可用时不阻塞业务。"""
-        from sagitta.Security.rate_limit import RateLimitMiddleware
+        from sagittapi.Security.rate_limit import RateLimitMiddleware
 
         call_count = 0
 
@@ -92,7 +92,7 @@ class TestRateLimitMiddleware:
 
     def test_rate_limited_returns_429(self):
         """超限时返回 429 JSONResponse，不走 call_next。"""
-        from sagitta.Security.rate_limit import RateLimitMiddleware
+        from sagittapi.Security.rate_limit import RateLimitMiddleware
 
         call_count = 0
 
@@ -133,7 +133,7 @@ class TestRateLimitMiddleware:
 
     def test_under_limit_passthrough(self):
         """未超限时正常放行。"""
-        from sagitta.Security.rate_limit import RateLimitMiddleware
+        from sagittapi.Security.rate_limit import RateLimitMiddleware
 
         call_count = 0
 
@@ -183,7 +183,7 @@ class TestBodySizeLimitMiddleware:
 
     def test_disabled_passthrough(self):
         """max_body_bytes=0 时不限制。"""
-        from sagitta.Core.body_limit import BodySizeLimitMiddleware
+        from sagittapi.Core.body_limit import BodySizeLimitMiddleware
 
         call_count = 0
 
@@ -199,7 +199,7 @@ class TestBodySizeLimitMiddleware:
 
     def test_get_request_skipped(self):
         """GET 请求不检查 body 大小。"""
-        from sagitta.Core.body_limit import BodySizeLimitMiddleware
+        from sagittapi.Core.body_limit import BodySizeLimitMiddleware
 
         call_count = 0
 
@@ -215,7 +215,7 @@ class TestBodySizeLimitMiddleware:
 
     def test_oversized_returns_413(self):
         """Content-Length 超过限制时返回 413。"""
-        from sagitta.Core.body_limit import BodySizeLimitMiddleware
+        from sagittapi.Core.body_limit import BodySizeLimitMiddleware
 
         call_count = 0
 
@@ -233,7 +233,7 @@ class TestBodySizeLimitMiddleware:
 
     def test_valid_size_passthrough(self):
         """Content-Length 在限制内时正常放行。"""
-        from sagitta.Core.body_limit import BodySizeLimitMiddleware
+        from sagittapi.Core.body_limit import BodySizeLimitMiddleware
 
         call_count = 0
 
@@ -250,7 +250,7 @@ class TestBodySizeLimitMiddleware:
 
     def test_invalid_content_length_passthrough(self):
         """Content-Length 非法数字时放行（交给下游 400）。"""
-        from sagitta.Core.body_limit import BodySizeLimitMiddleware
+        from sagittapi.Core.body_limit import BodySizeLimitMiddleware
 
         call_count = 0
 
@@ -268,7 +268,7 @@ class TestBodySizeLimitMiddleware:
 
     def test_no_content_length_passthrough(self):
         """无 Content-Length 时放行（流式上传由路由层控制）。"""
-        from sagitta.Core.body_limit import BodySizeLimitMiddleware
+        from sagittapi.Core.body_limit import BodySizeLimitMiddleware
 
         call_count = 0
 
@@ -287,7 +287,7 @@ class TestBodySizeLimitMiddleware:
         """413 响应体符合统一壳结构 {code, message, data}。"""
         import json
 
-        from sagitta.Core.body_limit import BodySizeLimitMiddleware
+        from sagittapi.Core.body_limit import BodySizeLimitMiddleware
 
         async def call_next(request):
             return MagicMock(status_code=200)
@@ -306,7 +306,7 @@ class TestMetricsCollector:
     """Prometheus 指标收集器测试。"""
 
     def test_counter_increment(self):
-        from sagitta.Core.metrics import MetricsCollector
+        from sagittapi.Core.metrics import MetricsCollector
 
         collector = MetricsCollector()
         collector.http_requests_total.inc(method="GET", route="/test", status="200")
@@ -316,7 +316,7 @@ class TestMetricsCollector:
         assert "200" in output
 
     def test_histogram_observe(self):
-        from sagitta.Core.metrics import MetricsCollector
+        from sagittapi.Core.metrics import MetricsCollector
 
         collector = MetricsCollector()
         collector.http_request_duration_ms.observe(15.0, method="POST", route="/api")
@@ -327,7 +327,7 @@ class TestMetricsCollector:
         assert "_count" in output
 
     def test_gauge_set_and_dec(self):
-        from sagitta.Core.metrics import MetricsCollector
+        from sagittapi.Core.metrics import MetricsCollector
 
         collector = MetricsCollector()
         collector.http_requests_in_progress.inc(method="GET")
@@ -340,7 +340,7 @@ class TestMetricsCollector:
 
     def test_prometheus_format_valid(self):
         """输出符合 Prometheus 文本格式：有 # HELP 和 # TYPE 行。"""
-        from sagitta.Core.metrics import MetricsCollector
+        from sagittapi.Core.metrics import MetricsCollector
 
         collector = MetricsCollector()
         collector.http_requests_total.inc(method="GET", route="/", status="200")

@@ -1,4 +1,4 @@
-# tests/conftest.py
+﻿# tests/conftest.py
 """pytest 全局 fixtures。
 
 提供：
@@ -26,7 +26,7 @@ if _pkg_root not in sys.path:
 @pytest.fixture
 def test_settings():
     """构造最小可用的 SgSettings（不读 yaml 文件）。"""
-    from sagitta.Config.setting import SgSettings
+    from sagittapi.Config.setting import SgSettings
 
     raw = {
         "app": {"title": "test", "version": "0.0.0", "env": "test", "debug": True},
@@ -146,32 +146,32 @@ def reset_registries():
     """每个测试自动重置框架全局状态。"""
     # 重置控制器登记表
     try:
-        from sagitta.Flow.registry import reset_for_test
+        from sagittapi.Flow.registry import reset_for_test
         reset_for_test()
     except Exception:
         pass
     # 重置配置单例
     try:
-        from sagitta.Config.setting import _SETTINGS
-        import sagitta.Config.setting as mod
+        from sagittapi.Config.setting import _SETTINGS
+        import sagittapi.Config.setting as mod
         mod._SETTINGS = None
     except Exception:
         pass
     # 重置 ConfigLoader 单例
     try:
-        from sagitta.Config.loader import ConfigLoader
+        from sagittapi.Config.loader import ConfigLoader
         ConfigLoader.reset()
     except Exception:
         pass
     # 重置权限解析器为默认 RolePermissionResolver
     try:
-        from sagitta.Security.permissions import set_permission_resolver, RolePermissionResolver
+        from sagittapi.Security.permissions import set_permission_resolver, RolePermissionResolver
         set_permission_resolver(RolePermissionResolver())
     except Exception:
         pass
     # 重置 MetricsCollector 单例
     try:
-        from sagitta.Core.metrics import MetricsCollector
+        from sagittapi.Core.metrics import MetricsCollector
         MetricsCollector._instance = None
     except Exception:
         pass

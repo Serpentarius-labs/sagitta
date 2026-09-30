@@ -1,9 +1,9 @@
-# sagitta/Core/__init__.py
+﻿# sagitta/Core/__init__.py
 """Core 子包：依赖注入、错误体系、指标、请求体限制、业务码。
 
 导入示例::
 
-    from sagitta.Core import SgError, ServiceBase, Inject
+    from sagittapi.Core import SgError, ServiceBase, Inject
 """
 from .errors import (
     SUCCESS_CODE, SgError, BizError, NotFoundError, UnauthorizedError,

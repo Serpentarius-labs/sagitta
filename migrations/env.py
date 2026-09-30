@@ -1,4 +1,4 @@
-# migrations/env.py
+﻿# migrations/env.py
 """Alembic 迁移环境。
 
 两件事必须在这里做对，否则 autogenerate 会**静默生成空迁移**：
@@ -28,9 +28,9 @@ from typing import List
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from sagitta.Config.loader import ConfigLoader
-from sagitta.Config.setting import build_settings
-from sagitta.Database.base import Base
+from sagittapi.Config.loader import ConfigLoader
+from sagittapi.Config.setting import build_settings
+from sagittapi.Database.base import Base
 
 logger = logging.getLogger("alembic.env")
 

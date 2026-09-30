@@ -1,4 +1,4 @@
-# sagitta/App/bootstrap.py
+﻿# sagitta/App/bootstrap.py
 """应用装配的唯一入口。
 
 设计原则（对应「作为 submodule 被下游引入」这一用途）：
@@ -26,7 +26,7 @@ from ..Core.errors import SgError
 from ..Log.logger import get_trace
 from .lifespan import ShutdownHook, StartupHook, is_shutting_down, make_lifespan
 
-logger = logging.getLogger("sagitta")
+logger = logging.getLogger("sagittapi")
 
 # 中间件按「添加顺序与执行顺序相反」的规则装配。
 # 这里给出的是**执行顺序**（外层在前）：trace 最外层，才能覆盖全部耗时。

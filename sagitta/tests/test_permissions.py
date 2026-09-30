@@ -1,4 +1,4 @@
-# tests/test_permissions.py
+﻿# tests/test_permissions.py
 """权限系统单元测试。
 
 覆盖：
@@ -11,7 +11,7 @@
 import pytest
 from types import SimpleNamespace
 
-from sagitta.Security.permissions import (
+from sagittapi.Security.permissions import (
     DataScope,
     PermissionResolver,
     RolePermissionResolver,
@@ -222,7 +222,7 @@ class TestRequireDataScopeSecurity:
 
     def test_admin_gets_all_scope(self):
         """管理员无论请求什么 scope，都得到 ALL。"""
-        from sagitta.Security.permissions import require_data_scope
+        from sagittapi.Security.permissions import require_data_scope
         dep = require_data_scope("owner")
         user = _mock_user(roles=["admin"])
         ds = dep(user=user)
@@ -230,7 +230,7 @@ class TestRequireDataScopeSecurity:
 
     def test_non_admin_owner_scope(self):
         """非管理员请求 owner → 得到 OWNER + user_id。"""
-        from sagitta.Security.permissions import require_data_scope
+        from sagittapi.Security.permissions import require_data_scope
         dep = require_data_scope("owner")
         user = _mock_user(roles=["user"], sub="u-123")
         ds = dep(user=user)
@@ -239,7 +239,7 @@ class TestRequireDataScopeSecurity:
 
     def test_non_admin_tenant_scope_not_all(self):
         """非管理员请求 tenant → 得到 TENANT，不是 ALL（安全漏洞修复验证）。"""
-        from sagitta.Security.permissions import require_data_scope
+        from sagittapi.Security.permissions import require_data_scope
         dep = require_data_scope("tenant")
         user = _mock_user(roles=["user"], sub="u-123", tenant_id="t-1")
         ds = dep(user=user)
@@ -249,7 +249,7 @@ class TestRequireDataScopeSecurity:
 
     def test_unauthenticated_user_owner_scope(self):
         """未认证用户请求 owner → OWNER scope, user_id=None → 查询返回空。"""
-        from sagitta.Security.permissions import require_data_scope
+        from sagittapi.Security.permissions import require_data_scope
         dep = require_data_scope("owner")
         ds = dep(user=None)
         assert ds.scope == DataScope.OWNER

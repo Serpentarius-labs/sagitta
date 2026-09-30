@@ -1,4 +1,4 @@
-# sagitta/Security/rate_limit.py
+﻿# sagitta/Security/rate_limit.py
 """全局限流中间件：per-IP / per-user / per-route 滑动窗口限流。
 
 策略：
@@ -95,7 +95,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         except Exception:
             # Redis 不可用时不阻塞业务，但记录告警
             import logging
-            logging.getLogger("sagitta").warning(
+            logging.getLogger("sagittapi").warning(
                 "[rate_limit] Redis 不可用，限流降级为不限流"
             )
             return await call_next(request)
@@ -144,7 +144,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     async def _log_hit(self, request: Request, dimension: str, key_id: str) -> None:
         import logging
         tid, _ = get_trace()
-        logging.getLogger("sagitta").info(
+        logging.getLogger("sagittapi").info(
             "[%s] rate_limit HIT dimension=%s key=%s path=%s",
             tid, dimension, key_id, request.url.path
         )

@@ -1,5 +1,5 @@
-from sagitta.Config.loader import ConfigLoader
-from sagitta.Config.setting import build_settings, set_settings
+﻿from sagittapi.Config.loader import ConfigLoader
+from sagittapi.Config.setting import build_settings, set_settings
 
 raw = ConfigLoader.instance('conf/config.yaml').reload()
 s = build_settings(raw)

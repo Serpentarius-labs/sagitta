@@ -1,4 +1,4 @@
-# app/services/user_service.py
+﻿# app/services/user_service.py
 """用户 Service —— 业务逻辑层的**正确示范**。
 
 三条约定，业务代码请照此办理：
@@ -19,10 +19,10 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from sagitta.Core.errors import NotFoundError
-from sagitta.Core.inject import ServiceBase
-from sagitta.Flow.page import CursorPage, Page, PageQuery
-from sagitta.Security.hash import PasswordHasher
+from sagittapi.Core.errors import NotFoundError
+from sagittapi.Core.inject import ServiceBase
+from sagittapi.Flow.page import CursorPage, Page, PageQuery
+from sagittapi.Security.hash import PasswordHasher
 
 from demo.do.user_do import UserDO
 from demo.do.user_repo import UserRepository
@@ -46,7 +46,7 @@ class UserService(ServiceBase):
         if await repo.get_by_username(dto.username):
             # 业务拒绝：码值（HTTP 大类 + 文案）集中声明在 app/biz_code.py，
             # 此处只引用，不重写文案/状态码。
-            from sagitta.Core.errors import BizError
+            from sagittapi.Core.errors import BizError
             from demo.biz_code import UserCodes
             raise BizError(UserCodes.USERNAME_TAKEN)
         row = UserDO(

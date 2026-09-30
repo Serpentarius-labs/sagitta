@@ -1,4 +1,4 @@
-# app/services/auth_service.py
+﻿# app/services/auth_service.py
 """认证 Service —— 登录凭证校验与令牌签发的**正确示范**。
 
 要点：
@@ -11,10 +11,10 @@ from typing import Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from sagitta.Core.errors import UnauthorizedError
-from sagitta.Core.inject import ServiceBase
-from sagitta.Security.hash import PasswordHasher
-from sagitta.Security.jwt import (
+from sagittapi.Core.errors import UnauthorizedError
+from sagittapi.Core.inject import ServiceBase
+from sagittapi.Security.hash import PasswordHasher
+from sagittapi.Security.jwt import (
     JWT, TOKEN_TTL_ACCESS, TOKEN_TTL_REFRESH, TokenPayload,
 )
 

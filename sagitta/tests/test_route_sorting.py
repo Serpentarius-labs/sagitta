@@ -1,4 +1,4 @@
-# tests/test_route_sorting.py
+﻿# tests/test_route_sorting.py
 """路由排序逻辑单元测试。
 
 覆盖：
@@ -8,7 +8,7 @@
 """
 import pytest
 
-from sagitta.Flow.controller import Controller
+from sagittapi.Flow.controller import Controller
 
 
 class _CaptureController(Controller):

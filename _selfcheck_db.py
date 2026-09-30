@@ -1,4 +1,4 @@
-"""端到端验证：守卫 / 注入 / 建表 / keyset 深分页。
+﻿"""端到端验证：守卫 / 注入 / 建表 / keyset 深分页。
 连真实 PG 容器（127.0.0.1:15432），跑完即删表，不留痕。
 """
 import asyncio
@@ -17,11 +17,11 @@ os.environ["SG_LOG_CONSOLE"] = "0"
 from sqlalchemy import Column, Integer, String, select, func, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
-from sagitta.Database.base import Base, BaseDO, SoftDeleteDO, uuid7
-from sagitta.Database.engine import EngineRegistry
-from sagitta.Database.repository import BaseRepository, MAX_OFFSET
-from sagitta.Database.session import session_scope
-from sagitta.Config.setting import get_settings
+from sagittapi.Database.base import Base, BaseDO, SoftDeleteDO, uuid7
+from sagittapi.Database.engine import EngineRegistry
+from sagittapi.Database.repository import BaseRepository, MAX_OFFSET
+from sagittapi.Database.session import session_scope
+from sagittapi.Config.setting import get_settings
 
 PASS, FAIL = [], []
 

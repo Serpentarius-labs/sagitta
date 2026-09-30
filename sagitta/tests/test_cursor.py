@@ -1,4 +1,4 @@
-# tests/test_cursor.py
+﻿# tests/test_cursor.py
 """游标编解码单元测试。
 
 覆盖：
@@ -12,7 +12,7 @@ import uuid
 
 import pytest
 
-from sagitta.Database.repository import (
+from sagittapi.Database.repository import (
     CursorError,
     decode_cursor,
     encode_cursor,

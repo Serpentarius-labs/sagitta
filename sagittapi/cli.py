@@ -409,19 +409,19 @@ if typer is not None:
         )
         _write(
             base / "do" / f"{module}_do.py",
-            _DO_TPL.format(cls=cls, table=module),
+            _DO_TPL.format(module=module, cls=cls, table=module),
         )
         _write(
             base / "do" / f"{module}_repo.py",
-            _REPO_TPL.format(cls=cls),
+            _REPO_TPL.format(module=module, cls=cls),
         )
         _write(
             base / "dto" / f"{module}_dto.py",
-            _DTO_TPL.format(cls=cls),
+            _DTO_TPL.format(module=module, cls=cls),
         )
         _write(
             base / "vo" / f"{module}_vo.py",
-            _VO_TPL.format(cls=cls),
+            _VO_TPL.format(module=module, cls=cls),
         )
 
         typer.echo(f"\nModule '{module}' created: 6 files under app/.")
